@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, isRemoteSrc } from "@/lib/utils";
 
 interface DestinationGalleryProps {
   name: string;
@@ -40,6 +40,7 @@ export default function DestinationGallery({ name, images }: DestinationGalleryP
                 alt={`${name} gallery photo ${index + 1}`}
                 width={720}
                 height={480}
+                unoptimized={isRemoteSrc(images[index])}
                 className={cn(
                   "w-full object-cover",
                   isCenter ? "aspect-[16/10]" : "aspect-[16/11]",

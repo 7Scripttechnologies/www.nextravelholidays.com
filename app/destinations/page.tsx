@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import ReviewsSection from "@/components/ReviewsSection";
-import { getAllDestinations } from "@/data/destinations";
+import { getAllDestinations } from "@/lib/packages";
 
 export const metadata: Metadata = {
   title: "Destinations — NexTravel Holidays",
@@ -13,8 +13,10 @@ export const metadata: Metadata = {
     "Explore top travel destinations with NexTravel Holidays — Kashmir, Kerala, Manali, Udaipur and more curated escapes.",
 };
 
-export default function DestinationsPage() {
-  const destinations = getAllDestinations();
+export const dynamic = "force-dynamic";
+
+export default async function DestinationsPage() {
+  const destinations = await getAllDestinations();
 
   return (
     <>
@@ -42,11 +44,15 @@ export default function DestinationsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-              {destinations.map((destination) => (
-                <DestinationCard key={destination.slug} destination={destination} />
-              ))}
-            </div>
+            {destinations.length === 0 ? (
+              <p className="text-sm text-muted">No destinations yet. Add packages from the admin panel.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                {destinations.map((destination) => (
+                  <DestinationCard key={destination.slug} destination={destination} />
+                ))}
+              </div>
+            )}
           </Container>
         </section>
 

@@ -13,6 +13,7 @@ export interface ItineraryDay {
 }
 
 export interface Destination {
+  id?: number;
   slug: string;
   name: string;
   image: string;
@@ -29,6 +30,9 @@ export interface Destination {
   itinerary: ItineraryDay[];
   included: string[];
   notIncluded: string[];
+  featured?: boolean;
+  active?: boolean;
+  sortOrder?: number;
 }
 
 const itineraryIntro =
@@ -760,30 +764,10 @@ export const destinationCategories: DestinationCategory[] = [
   "Other",
 ];
 
-export function getAllDestinations(): Destination[] {
+export function getStaticDestinations(): Destination[] {
   const bySlug = new Map<string, Destination>();
   [...featuredDestinations, ...popularDestinations].forEach((destination) => {
     bySlug.set(destination.slug, destination);
   });
   return [...bySlug.values()];
-}
-
-export function getDestination(slug: string): Destination | undefined {
-  return getAllDestinations().find((destination) => destination.slug === slug);
-}
-
-export function getDestinationsByCategory(category: DestinationCategory): Destination[] {
-  const featuredInCategory = featuredDestinations.filter(
-    (destination) => destination.category === category,
-  );
-  const popularInCategory = popularDestinations.filter(
-    (destination) => destination.category === category,
-  );
-
-  const bySlug = new Map<string, Destination>();
-  [...popularInCategory, ...featuredInCategory].forEach((destination) => {
-    bySlug.set(destination.slug, destination);
-  });
-
-  return [...bySlug.values()].slice(0, 6);
 }

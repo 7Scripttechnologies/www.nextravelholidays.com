@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, MapPin, Star } from "lucide-react";
 import type { Destination } from "@/data/destinations";
-import { cn } from "@/lib/utils";
+import { cn, isRemoteSrc } from "@/lib/utils";
 
 interface DestinationCardProps {
   destination: Destination;
@@ -26,6 +26,7 @@ export default function DestinationCard({ destination, className }: DestinationC
             alt={`${destination.name} travel destination`}
             width={640}
             height={480}
+            unoptimized={isRemoteSrc(destination.image)}
             className="aspect-[16/11] w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
           />
           <span className="absolute inset-0 bg-gradient-to-t from-[#111111]/80 via-transparent to-transparent opacity-80" />

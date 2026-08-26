@@ -7,14 +7,17 @@ import FadeUp from "@/components/FadeUp";
 import SectionLabel from "@/components/SectionLabel";
 import {
   destinationCategories,
-  getDestinationsByCategory,
+  type Destination,
   type DestinationCategory,
 } from "@/data/destinations";
 import { cn } from "@/lib/utils";
 
-export default function PopularDestinations() {
+export default function PopularDestinations({ destinations }: { destinations: Destination[] }) {
   const [category, setCategory] = useState<DestinationCategory>("Mountain");
-  const destinations = useMemo(() => getDestinationsByCategory(category), [category]);
+  const filtered = useMemo(
+    () => destinations.filter((destination) => destination.category === category).slice(0, 6),
+    [destinations, category],
+  );
 
   return (
     <section id="destinations" className="scroll-mt-24 py-8 md:py-16">
@@ -56,7 +59,7 @@ export default function PopularDestinations() {
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {destinations.map((destination, index) => (
+          {filtered.map((destination, index) => (
             <FadeUp key={`${category}-${destination.slug}`} delay={(index % 3) * 80} className="h-full">
               <DestinationCard destination={destination} />
             </FadeUp>

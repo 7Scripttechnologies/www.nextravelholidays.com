@@ -13,8 +13,9 @@ export const metadata: Metadata = {
   description:
     "Discover beautiful destinations, unforgettable adventures and curated holiday packages with NexTravel Holidays.",
   icons: {
-    icon: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+    shortcut: "/favicon.png",
   },
 };
 

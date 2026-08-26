@@ -5,6 +5,7 @@ import Button from "@/components/Button";
 import Container from "@/components/Container";
 import SectionLabel from "@/components/SectionLabel";
 import type { Destination } from "@/data/destinations";
+import { isRemoteSrc } from "@/lib/utils";
 
 interface DestinationHeroProps {
   destination: Destination;
@@ -12,19 +13,20 @@ interface DestinationHeroProps {
 
 export default function DestinationHero({ destination }: DestinationHeroProps) {
   return (
-    <section className="relative isolate min-h-[68vh] overflow-hidden sm:min-h-[72vh] lg:min-h-[78vh]">
+    <section className="relative isolate -mt-[84px] min-h-[100svh] overflow-hidden pt-[84px] sm:-mt-[92px] sm:pt-[92px]">
       <Image
         src={destination.image}
         alt={`${destination.name} travel package`}
         fill
         priority
         sizes="100vw"
+        unoptimized={isRemoteSrc(destination.image)}
         className="object-cover object-center"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/35" />
       <div className="absolute inset-0 bg-black/25" />
 
-      <Container className="relative z-10 flex min-h-[68vh] flex-col justify-end pb-12 pt-24 sm:min-h-[72vh] sm:pb-16 lg:min-h-[78vh] lg:pb-20">
+      <Container className="relative z-10 flex min-h-[calc(100svh-84px)] flex-col justify-end pb-12 sm:min-h-[calc(100svh-92px)] sm:pb-16 lg:pb-20">
         <div className="max-w-3xl">
           <SectionLabel>{destination.category} package</SectionLabel>
           <h1 className="mt-3 text-[32px] leading-[1.1] font-extrabold tracking-tight text-white sm:text-5xl lg:text-[56px]">
