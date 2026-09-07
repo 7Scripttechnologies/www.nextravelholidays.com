@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { updateAdminCredentials, getAdminCredentials } from "@/lib/admin-credentials";
 import { ADMIN_COOKIE } from "@/lib/auth-constants";
 import { createAdminToken, requireAdmin, validateAdminCredentials } from "@/lib/auth";
 import { parseGalleryForm } from "@/lib/gallery-form";
@@ -51,7 +52,7 @@ function mysqlMessage(error: unknown) {
 export async function loginAdmin(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const result = validateAdminCredentials(email, password);
+  const result = await validateAdminCredentials(email, password);
   if (!result.ok) return { error: result.error };
 
   const store = await cookies();
@@ -266,5 +267,53 @@ export async function optimizeAdminImagesAction(): Promise<ActionState> {
     };
   } catch (error) {
     return { error: mysqlMessage(error) };
+  }
+}
+
+export async function updateAdminLoginAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const email = String(formData.get("email") ?? "").trim();
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  const credentials = await getAdminCredentials();
+  if (!credentials) {
+    return { error: "Admin credentials are not configured." };
+  }
+
+  const check = await validateAdminCredentials(credentials.email, currentPassword);
+  if (!check.ok) {
+    return { error: "Current password is incorrect." };
+  }
+
+  if (!email) {
+    return { error: "Email is required." };
+  }
+
+  const passwordToSave = newPassword || credentials.password;
+  if (newPassword) {
+    if (newPassword.length < 6) {
+      return { error: "New password must be at least 6 characters." };
+    }
+    if (newPassword !== confirmPassword) {
+      return { error: "New password and confirm password do not match." };
+    }
+  }
+
+  try {
+    await updateAdminCredentials(email, passwordToSave);
+    revalidatePath("/admin/settings");
+    return {
+      success: newPassword
+        ? "Login email and password updated. Use the new details next time you sign in."
+        : "Login email updated.",
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not update login details." };
   }
 }

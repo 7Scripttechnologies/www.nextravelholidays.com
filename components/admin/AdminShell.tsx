@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Settings,
   X,
 } from "lucide-react";
 import { logoutAdmin } from "@/app/admin/actions";
@@ -21,13 +22,14 @@ interface AdminShellProps {
   title: string;
   description?: string;
   actions?: React.ReactNode;
-  activeNav?: "packages" | "gallery" | "images";
+  activeNav?: "packages" | "gallery" | "images" | "settings";
 }
 
 const navItems = [
   { href: "/admin", label: "Packages", icon: LayoutDashboard, id: "packages" as const },
   { href: "/admin/gallery", label: "Gallery", icon: Images, id: "gallery" as const },
   { href: "/admin/images", label: "Optimise img", icon: ImageIcon, id: "images" as const },
+  { href: "/admin/settings", label: "Settings", icon: Settings, id: "settings" as const },
 ];
 
 const TOPBAR_H = "h-[88px]";
@@ -36,7 +38,7 @@ function AdminNav({
   activeNav,
   onNavigate,
 }: {
-  activeNav: "packages" | "gallery" | "images";
+  activeNav: "packages" | "gallery" | "images" | "settings";
   onNavigate?: () => void;
 }) {
   return (

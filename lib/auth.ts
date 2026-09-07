@@ -1,20 +1,13 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAdminCredentials } from "@/lib/admin-credentials";
 import { ADMIN_COOKIE } from "@/lib/auth-constants";
 
 export { ADMIN_COOKIE };
 
 function authSecret() {
   return process.env.AUTH_SECRET ?? "";
-}
-
-function adminEmail() {
-  return (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
-}
-
-function adminPassword() {
-  return process.env.ADMIN_PASSWORD ?? "";
 }
 
 function safeEqual(left: string, right: string) {
@@ -55,15 +48,25 @@ export function verifyAdminToken(token: string) {
   }
 }
 
-export function validateAdminCredentials(email: string, password: string) {
-  const expectedEmail = adminEmail();
-  const expectedPassword = adminPassword();
-  if (!expectedEmail || !expectedPassword || !authSecret()) {
-    return { ok: false as const, error: "Admin login is not configured. Add ADMIN_EMAIL, ADMIN_PASSWORD and AUTH_SECRET to .env.local." };
+export async function validateAdminCredentials(email: string, password: string) {
+  if (!authSecret()) {
+    return {
+      ok: false as const,
+      error: "Admin login is not configured. Add AUTH_SECRET to .env.local.",
+    };
   }
 
-  const emailOk = safeEqual(email.trim().toLowerCase(), expectedEmail);
-  const passwordOk = safeEqual(password, expectedPassword);
+  const credentials = await getAdminCredentials();
+  if (!credentials) {
+    return {
+      ok: false as const,
+      error:
+        "Admin login is not configured. Add ADMIN_EMAIL, ADMIN_PASSWORD and AUTH_SECRET to .env.local.",
+    };
+  }
+
+  const emailOk = safeEqual(email.trim().toLowerCase(), credentials.email);
+  const passwordOk = safeEqual(password, credentials.password);
   if (!emailOk || !passwordOk) {
     return { ok: false as const, error: "Invalid email or password." };
   }
