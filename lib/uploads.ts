@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { optimizeImageBuffer } from "@/lib/image-optimize";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]);
@@ -20,7 +21,9 @@ export async function saveUploadedImage(file: File) {
 
   await mkdir(UPLOAD_DIR, { recursive: true });
   const filename = `${Date.now()}-${safeFilename(file.name)}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const original = Buffer.from(await file.arrayBuffer());
+  const buffer =
+    file.type === "image/gif" ? original : await optimizeImageBuffer(original, filename);
   await writeFile(path.join(UPLOAD_DIR, filename), buffer);
   return `/uploads/${filename}`;
 }

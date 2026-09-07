@@ -24,12 +24,39 @@ export async function generateMetadata({ params }: DestinationPageProps): Promis
   const destination = await getDestination(slug);
 
   if (!destination) {
-    return { title: "Package not found — NexTravel" };
+    return { title: "Package not found" };
   }
 
+  const title = destination.name;
+  const description =
+    destination.overview?.slice(0, 160) ||
+    `${destination.name} holiday package with NexTravel Holidays — ${destination.location}, ${destination.duration}.`;
+
   return {
-    title: `${destination.name} — NexTravel`,
-    description: destination.overview,
+    title,
+    description,
+    keywords: [
+      destination.name,
+      destination.location,
+      `${destination.name} package`,
+      "NexTravel Holidays",
+      "holiday package India",
+      "tour package",
+    ],
+    alternates: { canonical: `/destinations/${destination.slug}` },
+    openGraph: {
+      title: `${destination.name} | NexTravel Holidays`,
+      description,
+      url: `/destinations/${destination.slug}`,
+      type: "website",
+      images: [{ url: destination.image, alt: destination.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${destination.name} | NexTravel Holidays`,
+      description,
+      images: [destination.image],
+    },
   };
 }
 

@@ -6,8 +6,9 @@ import Logo from "@/components/Logo";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Log In — Travelog",
-  description: "Log in to manage trips, saved destinations and bookings with Travelog.",
+  title: "Log In",
+  description: "Log in to NexTravel Holidays.",
+  robots: { index: false, follow: false },
 };
 
 export default function LoginPage() {

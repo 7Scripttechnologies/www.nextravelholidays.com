@@ -30,6 +30,7 @@ export default function Logo({ className, imageClassName, onClick }: LogoProps) 
         event.preventDefault();
         window.scrollTo({ top: 0, behavior: "smooth" });
       }}
+      suppressHydrationWarning
     >
       <Image
         src="/images/logo-nav.png"

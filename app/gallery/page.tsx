@@ -5,13 +5,21 @@ import FadeUp from "@/components/FadeUp";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
-import { getGalleryItems, type GalleryAspect } from "@/data/gallery";
+import type { GalleryAspect } from "@/data/gallery";
+import { getGalleryItems } from "@/lib/gallery";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Gallery — NexTravel Holidays",
+  title: "Gallery",
   description:
-    "Browse travel moments from NexTravel Holidays — mountains, beaches, cities and adventures captured on our journeys.",
+    "Browse travel moments from NexTravel Holidays — mountains, beaches, cities and adventures from trips planned across India and beyond.",
+  alternates: { canonical: "/gallery" },
+  openGraph: {
+    title: "Travel Gallery | NexTravel Holidays",
+    description:
+      "A visual look at the places and adventures that make every NexTravel holiday memorable.",
+    url: "/gallery",
+  },
 };
 
 const aspectClass: Record<GalleryAspect, string> = {
@@ -21,8 +29,8 @@ const aspectClass: Record<GalleryAspect, string> = {
   wide: "aspect-[21/9]",
 };
 
-export default function GalleryPage() {
-  const items = getGalleryItems();
+export default async function GalleryPage() {
+  const items = await getGalleryItems();
 
   return (
     <>
@@ -67,6 +75,7 @@ export default function GalleryPage() {
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                  unoptimized={/^https?:\/\//i.test(item.src)}
                 />
                 <div className="pointer-events-none absolute inset-0 bg-black/0 transition duration-300 group-hover:bg-black/20" />
               </figure>

@@ -6,25 +6,39 @@ import Container from "@/components/Container";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
+import { siteConfig } from "@/lib/site";
 import { whatsappInquiryUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
-  title: "Contact Us — NexTravel Holidays",
+  title: "Contact Us",
   description:
-    "Contact NexTravel Holidays for package inquiries, custom trips and travel support on WhatsApp, phone or email.",
+    "Contact NexTravel Holidays in Gujarat (Founder & CEO Pulkit Karangiya) — WhatsApp, phone or email for holiday packages from Ahmedabad, Surat, Vadodara, Rajkot and all Gujarat cities.",
+  keywords: [
+    "contact NexTravel Holidays",
+    "travel agency Gujarat contact",
+    "holiday packages Ahmedabad WhatsApp",
+    "tour packages Surat",
+  ],
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "Contact NexTravel Holidays | Gujarat Travel Agency",
+    description:
+      "Book with Founder & CEO Pulkit Karangiya’s team — serving travellers across Gujarat.",
+    url: "/contact",
+  },
 };
 
 const contactCards = [
   {
     label: "WhatsApp / Phone",
-    value: "+91 8866486477",
-    href: "tel:+918866486477",
+    value: siteConfig.phoneDisplay,
+    href: `tel:${siteConfig.phone}`,
     icon: Phone,
   },
   {
     label: "Email",
-    value: "info@nextravelholidays.com",
-    href: "mailto:info@nextravelholidays.com",
+    value: siteConfig.email,
+    href: `mailto:${siteConfig.email}`,
     icon: Mail,
   },
   {
@@ -43,9 +57,9 @@ export default function ContactPage() {
         <PageHero
           label="Contact Us"
           title="Let’s plan your next holiday"
-          description="Share your destination, travel dates and group size. Our team will reply with package options and a clear next step."
+          description="Serving travellers from Ahmedabad, Surat, Vadodara, Rajkot and every major Gujarat city. Share your destination, dates and group size — we reply on WhatsApp."
           image="/images/newsletter-bg.png"
-          imageAlt="Contact NexTravel Holidays"
+          imageAlt="Contact NexTravel Holidays Gujarat travel agency"
           cta={{ href: whatsappInquiryUrl, label: "WhatsApp Inquiry" }}
           secondaryCta={{ href: "/destinations", label: "See Destinations" }}
         />
@@ -87,6 +101,28 @@ export default function ContactPage() {
                       </a>
                     );
                   })}
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3 text-sm">
+                  <a
+                    href={siteConfig.socials.instagram}
+                    target="_blank"
+                    rel="me noopener noreferrer"
+                    className="font-semibold text-brand transition hover:text-[#EDEDED]"
+                  >
+                    Instagram
+                  </a>
+                  <span className="text-muted" aria-hidden="true">
+                    ·
+                  </span>
+                  <a
+                    href={siteConfig.socials.googleBusiness}
+                    target="_blank"
+                    rel="me noopener noreferrer"
+                    className="font-semibold text-brand transition hover:text-[#EDEDED]"
+                  >
+                    Google Business Profile
+                  </a>
                 </div>
 
                 <div className="mt-8">

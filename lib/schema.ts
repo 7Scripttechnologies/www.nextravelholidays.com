@@ -66,4 +66,16 @@ export const schemaStatements = [
     meta_value VARCHAR(255) NOT NULL,
     PRIMARY KEY (meta_key)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  `CREATE TABLE IF NOT EXISTS gallery_items (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(255) NOT NULL,
+    aspect ENUM('portrait', 'landscape', 'square', 'wide') NOT NULL DEFAULT 'landscape',
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_gallery_items_sort (sort_order, id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 ];

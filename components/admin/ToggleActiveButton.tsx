@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { togglePackageActiveAction } from "@/app/admin/actions";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface ToggleActiveButtonProps {
 }
 
 export default function ToggleActiveButton({ id, active, name }: ToggleActiveButtonProps) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   return (
@@ -21,6 +23,7 @@ export default function ToggleActiveButton({ id, active, name }: ToggleActiveBut
       onClick={() => {
         startTransition(async () => {
           await togglePackageActiveAction(id, !active);
+          router.refresh();
         });
       }}
       className={cn(

@@ -1,5 +1,7 @@
 export type GalleryAspect = "portrait" | "landscape" | "square" | "wide";
 
+export const galleryAspects: GalleryAspect[] = ["portrait", "landscape", "square", "wide"];
+
 export interface GalleryItem {
   id: string;
   src: string;

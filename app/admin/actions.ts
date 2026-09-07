@@ -5,6 +5,15 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_COOKIE } from "@/lib/auth-constants";
 import { createAdminToken, requireAdmin, validateAdminCredentials } from "@/lib/auth";
+import { parseGalleryForm } from "@/lib/gallery-form";
+import {
+  deleteGalleryItem,
+  importSampleGalleryItems,
+  insertGalleryItem,
+  setGalleryItemActive,
+  updateGalleryItem,
+} from "@/lib/gallery-db";
+import { optimizePendingImages } from "@/lib/image-optimize";
 import { parsePackageForm } from "@/lib/package-form";
 import {
   deletePackage,
@@ -15,6 +24,7 @@ import {
   updatePackage,
 } from "@/lib/packages-db";
 import { saveUploadedImage } from "@/lib/uploads";
+import { formatBytes } from "@/lib/utils";
 
 export type ActionState = { error?: string; success?: string } | null;
 
@@ -23,6 +33,11 @@ function revalidatePackages(slug?: string) {
   revalidatePath("/destinations");
   revalidatePath("/admin");
   if (slug) revalidatePath(`/destinations/${slug}`);
+}
+
+function revalidateGallery() {
+  revalidatePath("/gallery");
+  revalidatePath("/admin/gallery");
 }
 
 function mysqlMessage(error: unknown) {
@@ -144,6 +159,110 @@ export async function importSamplePackagesAction(): Promise<ActionState> {
         imported > 0
           ? `Imported ${imported} sample package${imported === 1 ? "" : "s"}.`
           : "Sample packages are already in the database.",
+    };
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+}
+
+export async function createGalleryItemAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = parseGalleryForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  try {
+    await insertGalleryItem(parsed.data);
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+
+  revalidateGallery();
+  redirect("/admin/gallery");
+}
+
+export async function updateGalleryItemAction(
+  id: number,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = parseGalleryForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  try {
+    await updateGalleryItem(id, parsed.data);
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+
+  revalidateGallery();
+  redirect("/admin/gallery");
+}
+
+export async function deleteGalleryItemAction(id: number) {
+  await requireAdmin();
+  try {
+    await deleteGalleryItem(id);
+  } catch (error) {
+    throw new Error(mysqlMessage(error));
+  }
+  revalidateGallery();
+}
+
+export async function toggleGalleryItemActiveAction(id: number, active: boolean) {
+  await requireAdmin();
+  try {
+    await setGalleryItemActive(id, active);
+  } catch (error) {
+    throw new Error(mysqlMessage(error));
+  }
+  revalidateGallery();
+}
+
+export async function importSampleGalleryAction(): Promise<ActionState> {
+  await requireAdmin();
+  try {
+    const imported = await importSampleGalleryItems();
+    revalidateGallery();
+    return {
+      success:
+        imported > 0
+          ? `Imported ${imported} gallery photo${imported === 1 ? "" : "s"}.`
+          : "Sample gallery photos are already in the database.",
+    };
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+}
+
+export async function optimizeAdminImagesAction(): Promise<ActionState> {
+  await requireAdmin();
+  try {
+    const result = await optimizePendingImages();
+    revalidatePath("/", "layout");
+    revalidatePath("/admin");
+    revalidatePath("/admin/gallery");
+    revalidatePath("/admin/images");
+    revalidatePath("/gallery");
+    revalidatePath("/destinations");
+
+    if (result.scanned === 0) {
+      return { success: "Nothing left to optimise — the list is clear." };
+    }
+
+    const saved = Math.max(0, result.bytesBefore - result.bytesAfter);
+    if (result.failed > 0 && result.optimized === 0) {
+      return {
+        error: `Could not optimise images. ${result.errors[0] ?? "Check server logs."}`,
+      };
+    }
+
+    return {
+      success: `Done. Optimised ${result.optimized} image${result.optimized === 1 ? "" : "s"}${
+        saved > 0 ? ` and saved ${formatBytes(saved)}` : ""
+      }. They are removed from this list.${
+        result.failed > 0 ? ` ${result.failed} failed.` : ""
+      }`,
     };
   } catch (error) {
     return { error: mysqlMessage(error) };

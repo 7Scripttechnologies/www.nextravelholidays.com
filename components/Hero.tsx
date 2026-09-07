@@ -54,7 +54,7 @@ export default function Hero() {
 
         <div className="relative mx-auto aspect-[1024/919] w-full min-w-0 max-w-[420px] sm:max-w-[520px] lg:max-w-[620px] xl:max-w-[680px]">
           <Image
-            src="/images/hero-visual.png"
+            src="/images/hero-visual.jpg"
             alt="Excited traveler holding boarding passes and a suitcase"
             fill
             priority

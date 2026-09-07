@@ -7,9 +7,23 @@ import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = {
-  title: "About — NexTravel Holidays",
+  title: "About",
   description:
-    "Learn about NexTravel Holidays — passion, travel and trust behind curated holiday packages across India.",
+    "Meet Pulkit Karangiya, Founder & CEO of NexTravel Holidays — Gujarat’s trusted travel partner serving Ahmedabad, Surat, Vadodara, Rajkot, Gandhinagar and all major cities with curated holiday packages across India and beyond.",
+  keywords: [
+    "Pulkit Karangiya",
+    "NexTravel Holidays Founder CEO",
+    "travel agency Gujarat",
+    "best travel agency Ahmedabad",
+    "tour packages Surat",
+  ],
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "About NexTravel Holidays | Founder & CEO Pulkit Karangiya",
+    description:
+      "NexTravel Holidays serves travellers across Gujarat — Ahmedabad, Surat, Vadodara, Rajkot and more — led by Founder & CEO Pulkit Karangiya.",
+    url: "/about",
+  },
 };
 
 function StatValue({ value }: { value: string }) {
@@ -56,8 +70,8 @@ const values = [
 
 const team = [
   {
-    name: "Travel Desk",
-    role: "Founder Office",
+    name: "Pulkit Karangiya",
+    role: "Founder & CEO",
     image: "/images/hero-traveler.jpg",
     offset: "lg:translate-y-2",
   },
@@ -101,7 +115,7 @@ export default function AboutPage() {
         <PageHero
           label="About NexTravel"
           title="Your Trusted Travel Partner"
-          description="Real travelers, real memories — NexTravel Holidays plans trips built on passion, trust and shared experiences."
+          description="Real travelers, real memories — NexTravel Holidays plans trips for families and groups across Gujarat and beyond, built on passion, trust and shared experiences."
           image="/images/about-hero.png"
           imageAlt="NexTravel travelers together at a temple during a holiday trip"
           imageClassName="object-[center_62%]"
@@ -196,16 +210,18 @@ export default function AboutPage() {
               <div className="space-y-5 text-sm leading-7 text-muted md:text-[15px] md:leading-8">
                 <p>
                   At{" "}
-                  <span className="font-semibold text-[#EDEDED]">NexTravel Holidays</span>, we
-                  believe that every journey should be as unique as the traveler. We specialize in
-                  creating personalized travel experiences by understanding your preferences,
-                  interests and budget, ensuring every trip is thoughtfully planned from start to
-                  finish.
+                  <span className="font-semibold text-[#EDEDED]">NexTravel Holidays</span>, led by
+                  Founder &amp; CEO{" "}
+                  <span className="font-semibold text-[#EDEDED]">Pulkit Karangiya</span>, we believe
+                  that every journey should be as unique as the traveler. Based in Gujarat, we serve
+                  travellers from Ahmedabad, Surat, Vadodara, Rajkot, Gandhinagar, Bhavnagar,
+                  Jamnagar, Junagadh and every major city across the state — creating personalized
+                  holiday experiences with clear planning from start to finish.
                 </p>
                 <p>
                   With a commitment to exceptional service and customer satisfaction, NexTravel
-                  Holidays is your trusted travel partner, turning every journey into a seamless and
-                  memorable experience.
+                  Holidays is your trusted travel partner across Gujarat, India and beyond —
+                  turning every journey into a seamless and memorable experience.
                 </p>
               </div>
 

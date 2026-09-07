@@ -114,6 +114,8 @@ export const privacyPage: LegalPage = {
       ],
     },
   ],
+  acknowledgment:
+    "By using our website or booking with NexTravel Holidays, you acknowledge that you have read and understood this Privacy Policy.",
   contactNote:
     "For privacy requests or questions, email info@nextravelholidays.com or call / WhatsApp +91 8866486477.",
 };

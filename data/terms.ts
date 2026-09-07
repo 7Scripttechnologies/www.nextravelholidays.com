@@ -10,6 +10,7 @@ export interface LegalPage {
   lastUpdated: string;
   intro: string;
   sections: LegalSection[];
+  acknowledgment?: string;
   contactNote: string;
 }
 
@@ -122,6 +123,8 @@ export const termsPage: LegalPage = {
       ],
     },
   ],
+  acknowledgment:
+    "By booking any tour package with NexTravel Holidays, you acknowledge that you have read, understood, and agreed to these terms and conditions.",
   contactNote:
     "For questions about these Terms & Conditions, email info@nextravelholidays.com or call / WhatsApp +91 8866486477.",
 };

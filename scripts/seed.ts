@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { closePool, ensureDatabase } from "../lib/db";
+import { seedGalleryIfEmpty } from "../lib/gallery-db";
 import { ensureSchema, seedIfEmpty } from "../lib/packages-db";
 
 function loadEnvLocal() {
@@ -43,6 +44,13 @@ async function main() {
     console.log(`Seeded ${result.count} packages into MySQL.`);
   } else {
     console.log(`MySQL is ready. Packages in database: ${result.count}.`);
+  }
+
+  const gallery = await seedGalleryIfEmpty();
+  if (gallery.seeded) {
+    console.log(`Seeded ${gallery.count} gallery photos into MySQL.`);
+  } else {
+    console.log(`Gallery photos in database: ${gallery.count}.`);
   }
   await closePool();
 }

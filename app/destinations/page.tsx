@@ -8,9 +8,27 @@ import ReviewsSection from "@/components/ReviewsSection";
 import { getAllDestinations } from "@/lib/packages";
 
 export const metadata: Metadata = {
-  title: "Destinations — NexTravel Holidays",
+  title: "Destinations",
   description:
-    "Explore top travel destinations with NexTravel Holidays — Kashmir, Kerala, Manali, Udaipur and more curated escapes.",
+    "Explore curated holiday destinations with NexTravel Holidays Gujarat — Kashmir, Kerala, Manali, Goa, Bali, Udaipur and more packages for travellers from Ahmedabad, Surat, Vadodara, Rajkot and all Gujarat cities.",
+  keywords: [
+    "holiday destinations India",
+    "tour packages from Gujarat",
+    "holiday packages Ahmedabad",
+    "Kashmir tour",
+    "Kerala package",
+    "Manali Kasol",
+    "Goa holiday",
+    "Bali tour package",
+    "NexTravel Holidays destinations",
+  ],
+  alternates: { canonical: "/destinations" },
+  openGraph: {
+    title: "Destinations | NexTravel Holidays Gujarat",
+    description:
+      "Browse handpicked holiday packages for travellers across Gujarat and beyond with NexTravel Holidays.",
+    url: "/destinations",
+  },
 };
 
 export const dynamic = "force-dynamic";

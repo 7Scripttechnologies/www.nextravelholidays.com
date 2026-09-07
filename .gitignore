@@ -43,3 +43,6 @@ next-env.d.ts
 # uploaded package images
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# local image-optimise admin state
+/data/image-optimise-done.json

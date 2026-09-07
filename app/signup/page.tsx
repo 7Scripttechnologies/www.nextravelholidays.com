@@ -6,8 +6,9 @@ import Logo from "@/components/Logo";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Sign Up — Travelog",
-  description: "Create a Travelog account to save destinations and book curated tours.",
+  title: "Sign Up",
+  description: "Create a NexTravel Holidays account.",
+  robots: { index: false, follow: false },
 };
 
 export default function SignupPage() {
