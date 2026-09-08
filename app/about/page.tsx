@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Globe, Heart, ShieldCheck } from "lucide-react";
 import Container from "@/components/Container";
 import Footer from "@/components/Footer";
+import FounderSpotlight from "@/components/FounderSpotlight";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 
@@ -65,45 +66,6 @@ const values = [
     description:
       "Your comfort and satisfaction are our top priorities — from trip planning to your safe return home.",
     icon: Heart,
-  },
-];
-
-const team = [
-  {
-    name: "Pulkit Karangiya",
-    role: "Founder & CEO",
-    image: "/images/hero-traveler.jpg",
-    offset: "lg:translate-y-2",
-  },
-  {
-    name: "Operations",
-    role: "Managing Director",
-    image: "/images/experience-traveler.jpg",
-    offset: "lg:translate-y-10",
-  },
-  {
-    name: "Holiday Desk",
-    role: "Travel Consultant",
-    image: "/images/dream-traveler.jpg",
-    offset: "lg:-translate-y-4",
-  },
-  {
-    name: "Guest Care",
-    role: "Travel Consultant",
-    image: "/images/avatar-1.jpg",
-    offset: "lg:translate-y-6",
-  },
-  {
-    name: "Tour Desk",
-    role: "Tour Manager",
-    image: "/images/avatar-2.jpg",
-    offset: "lg:translate-y-12",
-  },
-  {
-    name: "Field Support",
-    role: "Tour Manager",
-    image: "/images/avatar-3.jpg",
-    offset: "lg:translate-y-1",
   },
 ];
 
@@ -272,41 +234,9 @@ export default function AboutPage() {
           </Container>
         </section>
 
-        {/* Team */}
-        <section className="py-16 pb-20 md:py-24 md:pb-28">
+        <section className="py-14 pb-16 md:py-20 md:pb-24">
           <Container>
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-[28px] leading-[1.2] font-extrabold tracking-tight text-[#EDEDED] sm:text-3xl md:text-[40px]">
-                Meet the Experts Behind NexTravel Holidays
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-muted md:text-[15px] md:leading-8">
-                Our passionate team of travel experts is dedicated to crafting unforgettable
-                journeys. With deep destination knowledge and a commitment to excellence, we take
-                care of every detail so you can travel with confidence.
-              </p>
-            </div>
-
-            <div className="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-4 md:grid-cols-3 lg:mt-16 lg:grid-cols-6 lg:gap-5 lg:pb-10">
-              {team.map((member) => (
-                <article
-                  key={member.name + member.role}
-                  className={`group relative aspect-[3/4] overflow-hidden rounded-[22px] bg-[#111111] transition-transform duration-500 sm:rounded-[26px] lg:aspect-[2/3] ${member.offset}`}
-                >
-                  <Image
-                    src={member.image}
-                    alt={`${member.name} — ${member.role}`}
-                    fill
-                    sizes="(max-width: 768px) 45vw, 16vw"
-                    className="object-cover transition duration-500 group-hover:scale-[1.05]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
-                    <p className="text-sm font-bold text-white sm:text-base">{member.name}</p>
-                    <p className="mt-0.5 text-xs text-white/80 sm:text-sm">{member.role}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <FounderSpotlight />
           </Container>
         </section>
       </main>

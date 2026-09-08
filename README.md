@@ -78,7 +78,7 @@ The admin area is a **cookie-authenticated CMS** (single env-based admin user). 
 | Framework | Next.js **16.3.1** (App Router) |
 | UI | React **19.2.8**, Tailwind CSS **4**, Inter via `next/font` |
 | Icons | lucide-react |
-| Database | MySQL **8.4** (Docker Compose), `mysql2` |
+| Database | MySQL **8** (`mysql2`) |
 | Auth | HMAC-signed cookie (`nextravel_admin`), 7-day expiry |
 | Forms | Next.js Server Actions |
 | Language | TypeScript (strict) |
@@ -126,7 +126,7 @@ Destinations listing and detail pages set `dynamic = "force-dynamic"` so admin e
 
 - **Node.js** 20+ (Next 16)
 - **npm**
-- **Docker Desktop** (for local MySQL) **or** any MySQL 8 instance you point env vars at
+- **MySQL 8** instance (local or remote) pointed to by env vars
 
 ---
 
@@ -144,15 +144,18 @@ npm install
 cp .env.example .env.local
 ```
 
-Edit `.env.local`. For local Docker MySQL the example values already match `docker-compose.yml`. Change `AUTH_SECRET` to a long random string even in development.
+Edit `.env.local` to match your MySQL host/user/password. Change `AUTH_SECRET` to a long random string even in development.
 
-### 3. Start MySQL and seed packages
+### 3. Create database and seed packages
+
+Import the schema, then seed sample data:
 
 ```bash
+mysql -u root -p < database/nextravel.sql
 npm run db:setup
 ```
 
-This runs `docker compose up -d` then `npx tsx scripts/seed.ts`.
+`npm run db:setup` runs `npx tsx scripts/seed.ts`.
 
 The seed script:
 
@@ -161,14 +164,13 @@ The seed script:
 3. Runs schema statements
 4. Inserts sample packages from `featuredDestinations` **only if the `packages` table is empty** and `app_meta.catalog_seeded` is not already `1`
 
-You can also split the steps:
+You can also run seed alone:
 
 ```bash
-npm run db:up      # docker compose up -d
 npm run db:seed    # schema + seed-if-empty
 ```
 
-MySQL is published on **host port 3308** → container port 3306, so it does not clash with a local MySQL on 3306.
+Default MySQL port is **3306** (`MYSQL_PORT` in `.env.local`).
 
 ### 4. Run the app
 
@@ -197,7 +199,7 @@ Copy from `.env.example`. **Do not commit `.env.local`.** `.gitignore` ignores `
 | Variable | Required | Default (code) | Purpose |
 | --- | --- | --- | --- |
 | `MYSQL_HOST` | Yes (prod) | `127.0.0.1` | MySQL host |
-| `MYSQL_PORT` | Yes (prod) | `3308` | Host port (Compose maps 3308→3306) |
+| `MYSQL_PORT` | Yes (prod) | `3306` | MySQL port |
 | `MYSQL_USER` | Yes (prod) | `nextravel` | App user |
 | `MYSQL_PASSWORD` | Yes (prod) | `nextravel` | App password |
 | `MYSQL_DATABASE` | Yes (prod) | `nextravel` | Database name |
@@ -207,7 +209,7 @@ Copy from `.env.example`. **Do not commit `.env.local`.** `.gitignore` ignores `
 
 If `ADMIN_EMAIL`, `ADMIN_PASSWORD`, or `AUTH_SECRET` is missing, login returns: *Admin login is not configured.*
 
-Docker Compose also sets `MYSQL_ROOT_PASSWORD=nextravel` inside the container. That is for local development only.
+Admin email/password can also be changed later in **Admin → Settings** (stored in `app_meta`).
 
 ---
 
@@ -219,9 +221,8 @@ Docker Compose also sets `MYSQL_ROOT_PASSWORD=nextravel` inside the container. T
 | `build` | `next build` | Production build |
 | `start` | `next start` | Serve production build |
 | `lint` | `eslint` | Lint |
-| `db:up` | `docker compose up -d` | Start MySQL in the background |
 | `db:seed` | `npx tsx scripts/seed.ts` | Ensure DB + schema + seed if empty |
-| `db:setup` | Compose up + seed | First-time local database |
+| `db:setup` | same as `db:seed` | First-time database seed |
 
 ---
 
@@ -298,7 +299,7 @@ The contact form builds a WhatsApp message (name, number, email, subject, messag
 ### Dashboard
 
 - Stat cards: total / active / inactive / featured
-- If MySQL is down: error panel with `docker compose up -d` and `npm run db:seed`
+- If MySQL is down: error panel with import `database/nextravel.sql` and `npm run db:seed`
 - Empty catalog: prompt to create a package
 - Each card: cover, Active toggle, Featured badge, Edit, View, Delete
 
@@ -331,7 +332,7 @@ Server Actions accept bodies up to **12 MB** (`next.config.ts`) so image uploads
 
 ## Authentication
 
-Single admin user. Credentials are **not** stored in the database.
+Single admin user. Credentials come from `.env.local` by default, and can be changed in **Admin → Settings** (stored in `app_meta`).
 
 1. `validateAdminCredentials` compares email and password with `crypto.timingSafeEqual` (length must match).
 2. `createAdminToken` builds `{ role: "admin", exp }` JSON, HMAC-SHA256 with `AUTH_SECRET`, then base64url.
@@ -346,28 +347,16 @@ Admin pages set `robots: { index: false, follow: false }`.
 
 ## Database
 
-### Docker Compose (`docker-compose.yml`)
+### Schema file (`database/nextravel.sql`)
 
-- Image: `mysql:8.4`
-- Container: `nextravel-mysql`
-- Port: `3308:3306`
-- User / password / database: `nextravel`
-- Charset: `utf8mb4` / `utf8mb4_unicode_ci`
-- Volume: `nextravel_mysql_data`
-- Healthcheck: `mysqladmin ping`
-
-Stop:
+Import once against your MySQL 8 server:
 
 ```bash
-docker compose down
-```
-
-Data persists in the named volume. To wipe the catalog (destructive):
-
-```bash
-docker compose down -v
+mysql -u root -p < database/nextravel.sql
 npm run db:setup
 ```
+
+Default local settings in `.env.example`: host `127.0.0.1`, port `3306`, user/password/database `nextravel`.
 
 ### Connection pool (`lib/db.ts`)
 
@@ -533,7 +522,7 @@ lib/
 
 scripts/seed.ts              CLI seed
 proxy.ts                     Admin cookie gate
-docker-compose.yml
+database/nextravel.sql       MySQL schema + admin seed
 next.config.ts
 ```
 
@@ -545,7 +534,7 @@ Path alias: `@/*` → repo root (`tsconfig.json`).
 
 `lib/packages.ts` catches connection/query errors, logs once (`[packages] MySQL is unavailable, using static destinations.`), and serves **active** entries from `getStaticDestinations()`.
 
-The **admin dashboard does not fall back**. It shows a MySQL error and asks you to start Docker and seed.
+The **admin dashboard does not fall back**. It shows a MySQL error and asks you to import the schema and seed.
 
 So:
 
@@ -587,15 +576,15 @@ Font: **Inter** (`--font-inter`). Brand red `#E20E17` is used on buttons, underl
 
 1. Set all env vars on the host (never use example passwords).
 2. Use a strong unique `AUTH_SECRET` and a strong `ADMIN_PASSWORD`.
-3. Point `MYSQL_*` at a managed MySQL 8 instance (not the Compose defaults).
-4. Run schema/seed once against that instance (`npm run db:seed` with production env, or migrate tables yourself).
+3. Point `MYSQL_*` at a managed MySQL 8 instance.
+4. Run schema/seed once against that instance (`mysql < database/nextravel.sql` then `npm run db:seed`, or migrate tables yourself).
 5. Persist `public/uploads/` (or move uploads to object storage later).
 6. Serve HTTPS so the admin cookie can use `secure: true`.
 7. Restrict who can reach `/admin` (VPN, IP allowlist, or similar) in addition to the cookie.
 8. Run `npm run build` and `npm run start` (or your platform’s Next.js adapter).
 9. Confirm WhatsApp number and contact email before launch.
 
-Vercel (or similar) needs a reachable MySQL host; Docker Compose is for local use. Uploaded files on ephemeral filesystems will disappear unless you attach a volume or external storage.
+Vercel (or similar) needs a reachable MySQL host. Uploaded files on ephemeral filesystems will disappear unless you attach a volume or external storage.
 
 ---
 
@@ -608,7 +597,7 @@ Add `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `AUTH_SECRET` to `.env.local` and resta
 Email is trimmed and lowercased. Password must match exactly (including spaces).
 
 **Dashboard: MySQL is not connected**  
-Start Compose (`npm run db:up`), wait for healthy, confirm `.env.local` host/port (`127.0.0.1:3308`). Then `npm run db:seed`.
+Confirm MySQL is running and `.env.local` host/port (`127.0.0.1:3306`). Import `database/nextravel.sql`, then `npm run db:seed`.
 
 **Public site shows sample packages, admin is empty or errors**  
 Public fallback is on; admin talks only to MySQL. Fix the database connection.
@@ -622,8 +611,8 @@ Change the slug. Unique index `uq_packages_slug`.
 **Image upload fails**  
 Use JPG/PNG/WEBP/GIF under 8 MB. Ensure `public/uploads` is writable.
 
-**Port 3308 already in use**  
-Change the left side of `3308:3306` in `docker-compose.yml` **and** `MYSQL_PORT` in `.env.local`.
+**MySQL port already in use**  
+Change `MYSQL_PORT` in `.env.local` to match your server.
 
 **Seed did not insert packages**  
 Table is not empty, or `catalog_seeded` is already `1`. Import from admin or insert manually.

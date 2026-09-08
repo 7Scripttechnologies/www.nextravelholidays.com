@@ -59,7 +59,7 @@ export default async function AdminPackagesPage() {
           <p className="font-semibold">MySQL is not connected.</p>
           <p className="mt-2 text-muted">{dbError}</p>
           <p className="mt-3 text-muted">
-            Start MySQL with <code className="text-[#EDEDED]">docker compose up -d</code>, then run{" "}
+            Start MySQL locally, import <code className="text-[#EDEDED]">database/nextravel.sql</code>, then run{" "}
             <code className="text-[#EDEDED]">npm run db:seed</code>.
           </p>
         </div>
