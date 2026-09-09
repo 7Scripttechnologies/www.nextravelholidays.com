@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node server.js",
     "lint": "eslint",
     "db:seed": "npx tsx scripts/seed.ts",
-    "db:setup": "npx tsx scripts/seed.ts"
+    "db:setup": "npx tsx scripts/seed.ts",
+    "pack:cpanel": "node scripts/pack-cpanel.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.33.0",

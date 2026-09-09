@@ -1,0 +1,7 @@
+# Optional — only if cPanel did NOT auto-create a Passenger block.
+# Prefer: Setup Node.js App (Software → Setup Node.js App).
+# Do NOT overwrite an existing "CLOUDLINUX PASSENGER CONFIGURATION" block.
+
+PassengerEnabled On
+PassengerAppType node
+PassengerStartupFile server.js

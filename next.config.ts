@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Smaller self-hosted output for cPanel Node.js apps
+  output: "standalone",
   serverExternalPackages: ["mysql2", "sharp"],
   experimental: {
     serverActions: {
