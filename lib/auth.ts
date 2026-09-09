@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAdminCredentials } from "@/lib/admin-credentials";
+import { listAdminLoginAccounts } from "@/lib/admin-credentials";
 import { ADMIN_COOKIE } from "@/lib/auth-constants";
 
 export { ADMIN_COOKIE };
@@ -56,8 +56,8 @@ export async function validateAdminCredentials(email: string, password: string) 
     };
   }
 
-  const credentials = await getAdminCredentials();
-  if (!credentials) {
+  const accounts = await listAdminLoginAccounts();
+  if (accounts.length === 0) {
     return {
       ok: false as const,
       error:
@@ -65,9 +65,13 @@ export async function validateAdminCredentials(email: string, password: string) 
     };
   }
 
-  const emailOk = safeEqual(email.trim().toLowerCase(), credentials.email);
-  const passwordOk = safeEqual(password, credentials.password);
-  if (!emailOk || !passwordOk) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const matched = accounts.some(
+    (account) =>
+      safeEqual(normalizedEmail, account.email) && safeEqual(password, account.password),
+  );
+
+  if (!matched) {
     return { ok: false as const, error: "Invalid email or password." };
   }
 

@@ -50,7 +50,16 @@ export default function OptimizeImagesCard({
             ) : (
               <>
                 All caught up — nothing waiting to optimise. When you upload a new photo (or replace
-                an existing file), it will appear here until you run optimise.
+                an existing file), it will appear here until you run optimise. This AI Tool make by {" "}
+                <a
+                  href="https://www.7scripttechnologies.com/"
+                  className="font-semibold underline text-[#E20E17] hover:text-[#1677ff] transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  7Script Technologies PVT LTD
+                </a>.
+           
               </>
             )}
           </p>
@@ -80,7 +89,7 @@ export default function OptimizeImagesCard({
           }}
           className="inline-flex items-center justify-center rounded-full bg-[#E20E17] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(226,14,23,0.28)] transition hover:brightness-110 disabled:opacity-60"
         >
-          {pending ? "Optimising… please wait" : "Optimise images"}
+          {pending ? "Optimising… please wait" : "AI - Optimise images"}
         </button>
       </div>
 

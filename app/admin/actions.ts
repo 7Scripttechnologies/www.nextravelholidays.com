@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { updateAdminCredentials, getAdminCredentials } from "@/lib/admin-credentials";
+import { updateAdminCredentials, getAdminCredentials, adminPasswordMatches } from "@/lib/admin-credentials";
 import { ADMIN_COOKIE } from "@/lib/auth-constants";
 import { createAdminToken, requireAdmin, validateAdminCredentials } from "@/lib/auth";
 import { parseGalleryForm } from "@/lib/gallery-form";
@@ -24,6 +24,18 @@ import {
   slugExists,
   updatePackage,
 } from "@/lib/packages-db";
+import { parseReviewForm } from "@/lib/reviews-form";
+import {
+  deleteReview,
+  importSampleReviews,
+  insertReview,
+  setReviewActive,
+  updateReview,
+} from "@/lib/reviews-db";
+import { parseLegalForm } from "@/lib/legal-form";
+import { upsertLegalPage, type LegalSlug } from "@/lib/legal-db";
+import { siteImageSlots } from "@/data/site-images";
+import { upsertSiteImages } from "@/lib/site-images-db";
 import { saveUploadedImage } from "@/lib/uploads";
 import { formatBytes } from "@/lib/utils";
 
@@ -39,6 +51,29 @@ function revalidatePackages(slug?: string) {
 function revalidateGallery() {
   revalidatePath("/gallery");
   revalidatePath("/admin/gallery");
+}
+
+function revalidateReviews() {
+  revalidatePath("/");
+  revalidatePath("/destinations");
+  revalidatePath("/admin/reviews");
+}
+
+function revalidateSiteImages() {
+  revalidatePath("/", "layout");
+  revalidatePath("/about");
+  revalidatePath("/destinations");
+  revalidatePath("/gallery");
+  revalidatePath("/contact");
+  revalidatePath("/admin/7script");
+}
+
+function revalidateLegal() {
+  revalidatePath("/terms");
+  revalidatePath("/privacy");
+  revalidatePath("/admin/legal");
+  revalidatePath("/admin/legal/terms");
+  revalidatePath("/admin/legal/privacy");
 }
 
 function mysqlMessage(error: unknown) {
@@ -236,6 +271,125 @@ export async function importSampleGalleryAction(): Promise<ActionState> {
   }
 }
 
+export async function createReviewAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = parseReviewForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  try {
+    await insertReview(parsed.data);
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+
+  revalidateReviews();
+  redirect("/admin/reviews");
+}
+
+export async function updateReviewAction(
+  id: number,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = parseReviewForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  try {
+    await updateReview(id, parsed.data);
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+
+  revalidateReviews();
+  redirect("/admin/reviews");
+}
+
+export async function deleteReviewAction(id: number) {
+  await requireAdmin();
+  try {
+    await deleteReview(id);
+  } catch (error) {
+    throw new Error(mysqlMessage(error));
+  }
+  revalidateReviews();
+}
+
+export async function toggleReviewActiveAction(id: number, active: boolean) {
+  await requireAdmin();
+  try {
+    await setReviewActive(id, active);
+  } catch (error) {
+    throw new Error(mysqlMessage(error));
+  }
+  revalidateReviews();
+}
+
+export async function importSampleReviewsAction(): Promise<ActionState> {
+  await requireAdmin();
+  try {
+    const imported = await importSampleReviews();
+    revalidateReviews();
+    return {
+      success:
+        imported > 0
+          ? `Imported ${imported} review${imported === 1 ? "" : "s"}.`
+          : "Sample reviews are already in the database.",
+    };
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+}
+
+export async function saveSiteImagesAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const values: Record<string, { src: string; caption: string }> = {};
+  for (const slot of siteImageSlots) {
+    const src = String(formData.get(`src__${slot.key}`) ?? "").trim();
+    const caption = String(formData.get(`caption__${slot.key}`) ?? "").trim();
+    if (!src) {
+      return { error: `${slot.label} is required.` };
+    }
+    values[slot.key] = { src, caption };
+  }
+
+  try {
+    await upsertSiteImages(values);
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+
+  revalidateSiteImages();
+  return { success: "7script saved. Changes are live on the website." };
+}
+
+export async function updateLegalPageAction(
+  slug: LegalSlug,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  if (slug !== "terms" && slug !== "privacy") {
+    return { error: "Invalid legal page." };
+  }
+
+  const parsed = parseLegalForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  try {
+    await upsertLegalPage(slug, parsed.data);
+  } catch (error) {
+    return { error: mysqlMessage(error) };
+  }
+
+  revalidateLegal();
+  return { success: `${parsed.data.title} saved. Changes are live on the website.` };
+}
+
 export async function optimizeAdminImagesAction(): Promise<ActionState> {
   await requireAdmin();
   try {
@@ -243,7 +397,8 @@ export async function optimizeAdminImagesAction(): Promise<ActionState> {
     revalidatePath("/", "layout");
     revalidatePath("/admin");
     revalidatePath("/admin/gallery");
-    revalidatePath("/admin/images");
+    revalidatePath("/admin/7script");
+    revalidatePath("/admin/optimise");
     revalidatePath("/gallery");
     revalidatePath("/destinations");
 
@@ -254,7 +409,7 @@ export async function optimizeAdminImagesAction(): Promise<ActionState> {
     const saved = Math.max(0, result.bytesBefore - result.bytesAfter);
     if (result.failed > 0 && result.optimized === 0) {
       return {
-        error: `Could not optimise images. ${result.errors[0] ?? "Check server logs."}`,
+        error: `Could not AI - Optimise images. ${result.errors[0] ?? "Check server logs."}`,
       };
     }
 
@@ -286,8 +441,7 @@ export async function updateAdminLoginAction(
     return { error: "Admin credentials are not configured." };
   }
 
-  const check = await validateAdminCredentials(credentials.email, currentPassword);
-  if (!check.ok) {
+  if (!(await adminPasswordMatches(currentPassword))) {
     return { error: "Current password is incorrect." };
   }
 

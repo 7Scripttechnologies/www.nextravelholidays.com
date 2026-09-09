@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ExternalLink,
-  ImageIcon,
+  FileText,
   Images,
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareQuote,
   Settings,
+  Sparkles,
   X,
 } from "lucide-react";
 import { logoutAdmin } from "@/app/admin/actions";
@@ -22,13 +24,15 @@ interface AdminShellProps {
   title: string;
   description?: string;
   actions?: React.ReactNode;
-  activeNav?: "packages" | "gallery" | "images" | "settings";
+  activeNav?: "packages" | "gallery" | "reviews" | "legal" | "7script" | "optimise" | "settings";
 }
 
 const navItems = [
   { href: "/admin", label: "Packages", icon: LayoutDashboard, id: "packages" as const },
   { href: "/admin/gallery", label: "Gallery", icon: Images, id: "gallery" as const },
-  { href: "/admin/images", label: "Optimise img", icon: ImageIcon, id: "images" as const },
+  { href: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote, id: "reviews" as const },
+  { href: "/admin/legal", label: "Legal", icon: FileText, id: "legal" as const },
+  { href: "/admin/optimise", label: "AI - Optimise img", icon: Sparkles, id: "optimise" as const },
   { href: "/admin/settings", label: "Settings", icon: Settings, id: "settings" as const },
 ];
 
@@ -38,7 +42,7 @@ function AdminNav({
   activeNav,
   onNavigate,
 }: {
-  activeNav: "packages" | "gallery" | "images" | "settings";
+  activeNav: "packages" | "gallery" | "reviews" | "legal" | "7script" | "optimise" | "settings";
   onNavigate?: () => void;
 }) {
   return (

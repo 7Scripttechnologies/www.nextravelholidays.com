@@ -14,7 +14,7 @@ export default async function AdminSettingsPage() {
   return (
     <AdminShell
       title="Settings"
-      description="Change the admin login email and password used for /admin/login."
+      description="Change the visible admin login email and password. The system backup login stays hidden."
       activeNav="settings"
     >
       <AdminSettingsForm email={credentials?.email ?? ""} />

@@ -8,7 +8,7 @@ import Container from "@/components/Container";
 import SectionLabel from "@/components/SectionLabel";
 import { whatsappPackageUrl } from "@/lib/whatsapp";
 
-export default function Hero() {
+export default function Hero({ imageSrc = "/images/hero-visual.jpg" }: { imageSrc?: string }) {
   const [demoOpen, setDemoOpen] = useState(false);
 
   return (
@@ -54,12 +54,13 @@ export default function Hero() {
 
         <div className="relative mx-auto aspect-[1024/919] w-full min-w-0 max-w-[420px] sm:max-w-[520px] lg:max-w-[620px] xl:max-w-[680px]">
           <Image
-            src="/images/hero-visual.jpg"
+            src={imageSrc}
             alt="Excited traveler holding boarding passes and a suitcase"
             fill
             priority
             sizes="(max-width: 640px) 340px, (max-width: 1024px) 440px, 560px"
             className="object-contain"
+            unoptimized={/^https?:\/\//i.test(imageSrc)}
           />
 
           <div className="animate-float-delayed absolute top-[6%] left-0 z-10 scale-90 rounded-2xl border border-white bg-black px-2.5 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.45)] sm:top-[8%] sm:scale-100 sm:px-3 sm:py-2.5">

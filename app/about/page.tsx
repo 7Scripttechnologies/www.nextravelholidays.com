@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import FounderSpotlight from "@/components/FounderSpotlight";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
+import { getSiteImages } from "@/lib/site-images";
 
 export const metadata: Metadata = {
   title: "About",
@@ -69,7 +70,61 @@ const values = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const images = await getSiteImages();
+  const collage = [
+    {
+      src: images.about_collage_1?.src ?? "/images/tropical.jpg",
+      alt: "Wildlife and nature experience",
+      className:
+        "relative col-span-1 aspect-[3/4] overflow-hidden rounded-[18px] sm:rounded-[22px] md:row-span-2 md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 18vw",
+    },
+    {
+      src: images.about_collage_2?.src ?? "/images/maldives.jpg",
+      alt: "Luxury coastal escape",
+      className:
+        "relative col-span-1 aspect-[16/11] overflow-hidden rounded-[18px] sm:rounded-[22px] md:col-span-2 md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 36vw",
+      priority: true,
+    },
+    {
+      src: images.about_collage_3?.src ?? "/images/expert-guides.webp",
+      alt: "Paragliding adventure over hillside town",
+      className:
+        "relative col-span-1 aspect-[3/4] overflow-hidden rounded-[18px] sm:rounded-[22px] md:row-span-2 md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 20vw",
+    },
+    {
+      src: images.about_collage_4?.src ?? "/images/manali-kasol-adventure.jpg",
+      alt: "Mountain adventure",
+      className:
+        "relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 18vw",
+    },
+    {
+      src: images.about_collage_5?.src ?? "/images/beach.jpg",
+      alt: "Fun beach holiday",
+      className:
+        "relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 18vw",
+    },
+    {
+      src: images.about_collage_6?.src ?? "/images/kashmir.jpg",
+      alt: "Kashmir lake journey",
+      className:
+        "relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 18vw",
+    },
+    {
+      src: images.about_collage_7?.src ?? "/images/forest.jpg",
+      alt: "Scenic hillside view",
+      className:
+        "relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto",
+      sizes: "(max-width: 768px) 50vw, 18vw",
+    },
+  ];
+
   return (
     <>
       <Navbar />
@@ -78,7 +133,7 @@ export default function AboutPage() {
           label="About NexTravel"
           title="Your Trusted Travel Partner"
           description="Real travelers, real memories — NexTravel Holidays plans trips for families and groups across Gujarat and beyond, built on passion, trust and shared experiences."
-          image="/images/about-hero.png"
+          image={images.about_hero?.src ?? "/images/about-hero.png"}
           imageAlt="NexTravel travelers together at a temple during a holiday trip"
           imageClassName="object-[center_62%]"
           cta={{ href: "/destinations", label: "Explore Destinations" }}
@@ -96,76 +151,19 @@ export default function AboutPage() {
 
             {/* Collage: tall | yacht+smalls | tall | stack */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-5 md:grid-rows-[minmax(160px,22vw)_minmax(160px,22vw)] lg:gap-5">
-              <div className="relative col-span-1 aspect-[3/4] overflow-hidden rounded-[18px] sm:rounded-[22px] md:row-span-2 md:aspect-auto">
-                <Image
-                  src="/images/tropical.jpg"
-                  alt="Wildlife and nature experience"
-                  fill
-                  sizes="(max-width: 768px) 50vw, 18vw"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="relative col-span-1 aspect-[16/11] overflow-hidden rounded-[18px] sm:rounded-[22px] md:col-span-2 md:aspect-auto">
-                <Image
-                  src="/images/maldives.jpg"
-                  alt="Luxury coastal escape"
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 50vw, 36vw"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="relative col-span-1 aspect-[3/4] overflow-hidden rounded-[18px] sm:rounded-[22px] md:row-span-2 md:aspect-auto">
-                <Image
-                  src="/images/expert-guides.webp"
-                  alt="Paragliding adventure over hillside town"
-                  fill
-                  sizes="(max-width: 768px) 50vw, 20vw"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto">
-                <Image
-                  src="/images/manali-kasol-adventure.jpg"
-                  alt="Mountain adventure"
-                  fill
-                  sizes="(max-width: 768px) 50vw, 18vw"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto">
-                <Image
-                  src="/images/beach.jpg"
-                  alt="Fun beach holiday"
-                  fill
-                  sizes="(max-width: 768px) 50vw, 18vw"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto">
-                <Image
-                  src="/images/kashmir.jpg"
-                  alt="Kashmir lake journey"
-                  fill
-                  sizes="(max-width: 768px) 50vw, 18vw"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="relative col-span-1 aspect-[4/3] overflow-hidden rounded-[18px] sm:rounded-[22px] md:aspect-auto">
-                <Image
-                  src="/images/forest.jpg"
-                  alt="Scenic hillside view"
-                  fill
-                  sizes="(max-width: 768px) 50vw, 18vw"
-                  className="object-cover"
-                />
-              </div>
+              {collage.map((item) => (
+                <div key={item.alt} className={item.className}>
+                  <Image
+                    src={item.src}
+                    alt={item.alt}
+                    fill
+                    priority={item.priority}
+                    sizes={item.sizes}
+                    className="object-cover"
+                    unoptimized={/^https?:\/\//i.test(item.src)}
+                  />
+                </div>
+              ))}
             </div>
 
             <div className="mt-10 grid items-center gap-10 md:mt-14 lg:grid-cols-2 lg:gap-16 xl:gap-24">
@@ -236,7 +234,7 @@ export default function AboutPage() {
 
         <section className="py-14 pb-16 md:py-20 md:pb-24">
           <Container>
-            <FounderSpotlight />
+            <FounderSpotlight imageSrc={images.about_founder?.src ?? "/images/pulkit-11.jpg"} />
           </Container>
         </section>
       </main>

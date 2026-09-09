@@ -30,6 +30,7 @@ export function parsePackageForm(formData: FormData): { ok: true; data: PackageI
   const overview = text(formData, "overview");
   const location = text(formData, "location");
   const price = text(formData, "price");
+  const originalPrice = text(formData, "originalPrice") || undefined;
   const duration = text(formData, "duration");
   const category = text(formData, "category") as DestinationCategory;
   const itineraryIntro = text(formData, "itineraryIntro");
@@ -78,6 +79,7 @@ export function parsePackageForm(formData: FormData): { ok: true; data: PackageI
       overview,
       location,
       price,
+      originalPrice,
       duration,
       category,
       itineraryIntro:

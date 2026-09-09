@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import LegalDocument from "@/components/LegalDocument";
-import { getTermsPage } from "@/data/terms";
+import { getTermsPage } from "@/lib/legal";
 
-const page = getTermsPage();
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getTermsPage();
+  return {
+    title: page.title,
+    description: page.description,
+    alternates: { canonical: "/terms" },
+    robots: { index: true, follow: true },
+  };
+}
 
-export const metadata: Metadata = {
-  title: page.title,
-  description: page.description,
-  alternates: { canonical: "/terms" },
-  robots: { index: true, follow: true },
-};
-
-export default function TermsPage() {
+export default async function TermsPage() {
+  const page = await getTermsPage();
   return <LegalDocument page={page} />;
 }

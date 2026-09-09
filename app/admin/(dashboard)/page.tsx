@@ -144,6 +144,11 @@ export default async function AdminPackagesPage() {
                       </div>
 
                       <span className="absolute right-3 bottom-3 rounded-lg bg-black/65 px-2.5 py-1 text-sm font-bold text-white backdrop-blur-sm">
+                        {item.originalPrice ? (
+                          <span className="mr-1.5 text-[11px] font-medium text-[#B0B0B0] line-through">
+                            {item.originalPrice}
+                          </span>
+                        ) : null}
                         {item.price}
                       </span>
                     </div>

@@ -23,6 +23,8 @@ export interface Destination {
   overview: string;
   location: string;
   price: string;
+  /** Optional MRP / list price shown with strikethrough when higher than offer price. */
+  originalPrice?: string;
   duration: string;
   category: DestinationCategory;
   highlights: Highlight[];
@@ -65,6 +67,7 @@ export const featuredDestinations: Destination[] = [
       "Discover the romance of Udaipur’s lakes and palaces, then drive up to Mount Abu for temples, viewpoints and a cooler hill-station evening. NexTravel keeps the route simple, the stays comfortable and the sightseeing well paced for families and couples.",
     location: "Rajasthan, India",
     price: "₹7,000",
+    originalPrice: "₹10,000",
     duration: "3 Days / 2 Nights",
     category: "City",
     highlights: [
@@ -121,6 +124,7 @@ export const featuredDestinations: Destination[] = [
       "This Bali tour balances culture and coastline. Start among Ubud’s temples and rice terraces, then shift to the beach for sunsets, cliff temples and free time. NexTravel plans comfortable stays and private transfers so the island feels easy from the first day.",
     location: "Bali, Indonesia",
     price: "₹19,999",
+    originalPrice: "₹24,999",
     duration: "8 Days / 7 Nights",
     category: "Nature",
     highlights: [
@@ -215,6 +219,7 @@ export const featuredDestinations: Destination[] = [
       "Explore the vibrant beauty of Goa with our specially curated Goa tour package. From relaxing on pristine beaches to enjoying water sports and nightlife, this package is perfect for couples, friends and families. NexTravel keeps the stay comfortable and the itinerary flexible so the trip feels easy from arrival to departure.",
     location: "Goa, India",
     price: "₹8,500",
+    originalPrice: "₹12,000",
     duration: "3–5 Days",
     category: "Beach",
     highlights: [
@@ -284,6 +289,7 @@ export const featuredDestinations: Destination[] = [
       "Travel through Kerala’s most loved landscapes: Cochin’s harbour streets, Munnar’s tea gardens, Thekkady’s spice hills and a slow night on the backwaters. NexTravel handles hotels, transfers and the houseboat so you can focus on the views.",
     location: "Kerala, India",
     price: "₹19,999",
+    originalPrice: "₹24,999",
     duration: "8 Days / 7 Nights",
     category: "Nature",
     highlights: [
@@ -366,6 +372,7 @@ export const featuredDestinations: Destination[] = [
       "See Kashmir in a well-paced loop: a houseboat or lake-facing stay in Srinagar, snow or meadows in Gulmarg, the Lidder valley in Pahalgam and the high road to Sonamarg. NexTravel arranges hotels, a local driver-guide and the classic sightseeing stops.",
     location: "Jammu & Kashmir, India",
     price: "₹22,999",
+    originalPrice: "₹28,999",
     duration: "9 Days / 8 Nights",
     category: "Mountain",
     highlights: [
@@ -446,6 +453,7 @@ export const featuredDestinations: Destination[] = [
       "An adventure-leaning Himachal trip: Manali for mountains and Solang, then Kasol for the Parvati valley, riverside cafés and optional treks. NexTravel sets up camp or hotel stays, local transport and a pace that still leaves room to wander.",
     location: "Himachal Pradesh, India",
     price: "₹9,499",
+    originalPrice: "₹13,999",
     duration: "8 Days / 7 Nights",
     category: "Mountain",
     highlights: [
@@ -520,6 +528,7 @@ export const featuredDestinations: Destination[] = [
       "Built for couples: comfortable rooms, scenic drives and unhurried sightseeing from Kullu to Manali and into Kasol. Expect river views, a candlelight evening, and enough free time to enjoy the trip together. NexTravel handles stays and transfers end to end.",
     location: "Himachal Pradesh, India",
     price: "₹11,500",
+    originalPrice: "₹15,999",
     duration: "8 Days / 7 Nights",
     category: "Mountain",
     highlights: [
@@ -594,6 +603,7 @@ export const featuredDestinations: Destination[] = [
       "Start on Shimla’s Mall Road, then cross into Kullu-Manali for mountains, Solang and couple-friendly evenings. The route is classic, the stays are chosen for comfort, and the days stay light enough to enjoy together.",
     location: "Himachal Pradesh, India",
     price: "₹16,000",
+    originalPrice: "₹19,999",
     duration: "8 Days / 7 Nights",
     category: "Mountain",
     highlights: [
@@ -668,6 +678,7 @@ export const featuredDestinations: Destination[] = [
       "A longer north-India circuit that starts with Amritsar’s Golden Temple and Wagah Border, then continues into Himachal for Shimla and Manali. It is built for families who want culture, hills and enough days to travel without rushing.",
     location: "Punjab & Himachal Pradesh, India",
     price: "₹25,000",
+    originalPrice: "₹32,000",
     duration: "11 Days / 10 Nights",
     category: "Other",
     highlights: [

@@ -8,13 +8,16 @@ import ExperienceSection from "@/components/ExperienceSection";
 import ExpertGuides from "@/components/ExpertGuides";
 import ReviewsSection from "@/components/ReviewsSection";
 import Footer from "@/components/Footer";
+import { getSiteImages } from "@/lib/site-images";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const images = await getSiteImages();
+
   return (
     <>
       <Navbar />
       <main>
-        <Hero />
+        <Hero imageSrc={images.home_hero?.src ?? "/images/hero-visual.jpg"} />
         <TrustedBrands />
         <ValueSection />
         <FeaturedDestinations />

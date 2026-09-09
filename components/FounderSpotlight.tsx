@@ -5,7 +5,11 @@ import Button from "@/components/Button";
 import FadeUp from "@/components/FadeUp";
 import { whatsappInquiryUrl } from "@/lib/whatsapp";
 
-export default function FounderSpotlight() {
+export default function FounderSpotlight({
+  imageSrc = "/images/pulkit-11.jpg",
+}: {
+  imageSrc?: string;
+}) {
   return (
     <div className="overflow-hidden rounded-[22px] border border-white/8 bg-[#141414] sm:rounded-[28px]">
       <div className="grid lg:grid-cols-2">
@@ -36,12 +40,13 @@ export default function FounderSpotlight() {
 
         <FadeUp delay={80} className="relative min-h-[320px] sm:min-h-[400px] lg:min-h-full">
           <Image
-            src="/images/pulkit-11.jpg"
+            src={imageSrc}
             alt="Pulkit Karangiya, Founder & CEO of NexTravel Holidays"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center"
             priority
+            unoptimized={/^https?:\/\//i.test(imageSrc)}
           />
         </FadeUp>
       </div>

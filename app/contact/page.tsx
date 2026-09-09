@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import { siteConfig } from "@/lib/site";
+import { getSiteImages } from "@/lib/site-images";
 import { whatsappInquiryUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -49,7 +50,9 @@ const contactCards = [
   },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const images = await getSiteImages();
+
   return (
     <>
       <Navbar />
@@ -58,7 +61,7 @@ export default function ContactPage() {
           label="Contact Us"
           title="Let’s plan your next holiday"
           description="Serving travellers from Ahmedabad, Surat, Vadodara, Rajkot and every major Gujarat city. Share your destination, dates and group size — we reply on WhatsApp."
-          image="/images/newsletter-bg.png"
+          image={images.contact_hero?.src ?? "/images/newsletter-bg.png"}
           imageAlt="Contact NexTravel Holidays Gujarat travel agency"
           cta={{ href: whatsappInquiryUrl, label: "WhatsApp Inquiry" }}
           secondaryCta={{ href: "/destinations", label: "See Destinations" }}

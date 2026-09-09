@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminImagesPage() {
+export default async function AdminOptimiseImagesPage() {
   const pending = await listPendingImages().catch(() => []);
   const totalBytes = pending.reduce((sum, item) => sum + item.bytes, 0);
 
@@ -19,7 +19,7 @@ export default async function AdminImagesPage() {
     <AdminShell
       title="Optimise images"
       description="Only photos that still need compressing appear here. After optimise, they leave the list."
-      activeNav="images"
+      activeNav="optimise"
     >
       <OptimizeImagesCard imageCount={pending.length} totalBytes={totalBytes} />
 

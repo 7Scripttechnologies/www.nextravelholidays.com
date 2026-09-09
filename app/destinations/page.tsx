@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import ReviewsSection from "@/components/ReviewsSection";
 import { getAllDestinations } from "@/lib/packages";
+import { getSiteImages } from "@/lib/site-images";
 
 export const metadata: Metadata = {
   title: "Destinations",
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function DestinationsPage() {
-  const destinations = await getAllDestinations();
+  const [destinations, images] = await Promise.all([getAllDestinations(), getSiteImages()]);
 
   return (
     <>
@@ -44,7 +45,7 @@ export default async function DestinationsPage() {
           label="Destinations"
           title="Explore places worth traveling for"
           description="Browse handpicked destinations across India — from mountain getaways and lake cities to beaches and backwaters — then open any tour for full details."
-          image="/images/maldives.jpg"
+          image={images.destinations_hero?.src ?? "/images/maldives.jpg"}
           imageAlt="Beautiful travel destination"
           cta={{ href: "/destinations", label: "View Destinations" }}
           secondaryCta={{ href: "/contact", label: "Plan My Trip" }}

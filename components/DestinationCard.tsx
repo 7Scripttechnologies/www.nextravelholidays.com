@@ -54,8 +54,15 @@ export default function DestinationCard({ destination, className }: DestinationC
                 <span className="pl-5 text-[12px] text-muted/80">{destination.duration}</span>
               ) : null}
             </span>
-            <span className="shrink-0 text-xl font-extrabold tracking-tight text-[#E20E17]">
-              {destination.price}
+            <span className="flex shrink-0 flex-col items-end gap-0.5 text-right">
+              {destination.originalPrice ? (
+                <span className="text-xs font-medium text-[#7A7A7A] line-through decoration-[#E20E17]/80">
+                  {destination.originalPrice}
+                </span>
+              ) : null}
+              <span className="text-xl font-extrabold tracking-tight text-[#E20E17]">
+                {destination.price}
+              </span>
             </span>
           </span>
 

@@ -4,6 +4,7 @@ import Container from "@/components/Container";
 import FadeUp from "@/components/FadeUp";
 import SectionLabel from "@/components/SectionLabel";
 import { guideFeatures } from "@/data/guides";
+import { getSiteImages } from "@/lib/site-images";
 
 const iconMap = {
   expertise: ThumbsUp,
@@ -11,7 +12,11 @@ const iconMap = {
   dedication: Triangle,
 };
 
-export default function ExpertGuides() {
+export default async function ExpertGuides() {
+  const images = await getSiteImages();
+  const photo = images.home_guides?.src ?? "/images/expert-guides.webp";
+  const caption = images.home_guides?.caption || "Manali, India";
+
   return (
     <section id="guides" className="scroll-mt-24 py-16 md:py-24">
       <Container>
@@ -34,11 +39,12 @@ export default function ExpertGuides() {
           <FadeUp className="h-full min-h-[300px] sm:min-h-[400px] lg:min-h-0">
             <div className="relative h-full min-h-[300px] overflow-hidden rounded-[28px] sm:min-h-[400px] lg:min-h-full">
               <Image
-                src="/images/expert-guides.webp"
+                src={photo}
                 alt="Tandem paragliding over a hillside town in the Himalayas"
                 fill
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 className="object-cover"
+                unoptimized={/^https?:\/\//i.test(photo)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
               <div className="absolute bottom-5 left-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-4 py-2 backdrop-blur-md sm:bottom-6 sm:left-6">
@@ -47,7 +53,7 @@ export default function ExpertGuides() {
                   strokeWidth={2.25}
                   aria-hidden="true"
                 />
-                <span className="text-sm font-semibold text-white">Manali, India</span>
+                <span className="text-sm font-semibold text-white">{caption}</span>
               </div>
             </div>
           </FadeUp>

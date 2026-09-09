@@ -1,19 +1,24 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Container from "@/components/Container";
+import { getSiteImages } from "@/lib/site-images";
 import { whatsappConsultantUrl } from "@/lib/whatsapp";
 
-export default function ConsultationCTA() {
+export default async function ConsultationCTA() {
+  const images = await getSiteImages();
+  const src = images.home_consultation?.src ?? "/images/newsletter-bg.png";
+
   return (
     <section className="py-8 sm:py-10 md:py-16">
       <Container>
         <div className="relative min-w-0 overflow-hidden rounded-[24px] bg-black text-center sm:rounded-[32px] md:rounded-[40px]">
           <Image
-            src="/images/newsletter-bg.png"
+            src={src}
             alt=""
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1600px) 92vw, 1600px"
             className="object-cover object-center opacity-55"
+            unoptimized={/^https?:\/\//i.test(src)}
           />
           <div className="absolute inset-0 bg-black/50" />
 

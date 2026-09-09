@@ -1,6 +1,6 @@
 # NexTravel Holidays
 
-Marketing website and admin CMS for **NexTravel Holidays** — curated holiday packages across India. Visitors browse destinations, read full itineraries, and inquire on WhatsApp. Admins manage packages in MySQL from a private dashboard.
+Marketing website and admin CMS for **NexTravel Holidays** — curated holiday packages across India. Visitors browse destinations, read itineraries, and inquire on WhatsApp. Admins manage packages, gallery, reviews, site photos, and legal pages in MySQL.
 
 Public site: [http://localhost:3000](http://localhost:3000)  
 Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
@@ -35,11 +35,11 @@ Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
 
 ## What this project is
 
-NexTravel is a **Next.js App Router** site for a travel agency. The public pages are a dark, branded marketing experience. Package catalog data lives in **MySQL 8**. If the database is unreachable, the public site still renders from static sample destinations in `data/destinations.ts`.
+NexTravel is a **Next.js App Router** site for a travel agency. Public pages are a dark, branded marketing experience. Catalog and CMS content live in **MySQL 8**. If MySQL is unreachable, the public site still falls back to static samples in `data/`.
 
-There is no customer checkout or payment flow. Booking and contact forms open a pre-filled WhatsApp chat with the agency.
+There is no customer checkout. Booking and contact forms open a pre-filled WhatsApp chat.
 
-The admin area is a **cookie-authenticated CMS** (single env-based admin user). From `/admin` you can create, edit, hide, feature, and delete tour packages. Changes show up immediately on the homepage and destination pages.
+The admin area is a **cookie-authenticated CMS**. From `/admin` you manage packages, gallery, reviews, legal pages, image optimisation, and settings. Site marketing photos are edited at the hidden route `/admin/7script`.
 
 ---
 
@@ -47,27 +47,24 @@ The admin area is a **cookie-authenticated CMS** (single env-based admin user). 
 
 ### Public site
 
-- Home: hero, trusted brands, value props, featured packages, dream-destination CTA, experience section, expert guides, reviews
-- Destinations index: all **active** packages as cards
-- Destination detail: hero, gallery, overview, highlights, day-by-day itinerary, inclusions, related packages, sticky booking form
-- About, gallery, contact, terms, privacy
-- WhatsApp CTAs in the navbar, hero, footer consultation block, booking form, and contact form
-- Mobile-first layout with a glass navbar and custom 404
-- `/login` and `/signup` exist as UI placeholders (they do not create accounts)
-- `/coming-soon/product` placeholder page
+- Home: hero, trusted brands, value props, featured packages, dream destination, experience, expert guides, **flipping reviews** (every 5 seconds)
+- Destinations: active packages as cards with **offer price** + optional **original (strikethrough) price**
+- Destination detail: hero, gallery, overview, highlights, itinerary, inclusions, booking form
+- About, gallery, contact
+- **Terms & Privacy** loaded from MySQL (`legal_pages`)
+- WhatsApp CTAs across navbar, forms, and footer
 
 ### Admin CMS (`/admin`)
 
-- Login with `ADMIN_EMAIL` / `ADMIN_PASSWORD`
-- Dashboard stats: total, active, inactive, featured
-- Package cards with cover, price, location, duration
-- Create / edit a full package (card fields, overview, gallery, highlights, itinerary, included / not included)
-- Upload images (JPG, PNG, WEBP, GIF, max 8 MB) to `public/uploads/`
-- Toggle **Active** (hidden from the public site when off)
-- Toggle **Featured** (homepage “Explore top destination”)
-- Delete package (cascades related gallery, highlights, itinerary, items)
-- Import sample packages from `data/destinations.ts` when slugs are missing
-- `robots: noindex` on admin pages
+| Area | Route | Notes |
+| --- | --- | --- |
+| Packages | `/admin` | CRUD, featured, green **ON/OFF** active toggle, offer + original price |
+| Gallery | `/admin/gallery` | Public `/gallery` photos |
+| Reviews | `/admin/reviews` | Carousel reviews (avatar, quote, rating, type) |
+| Legal | `/admin/legal` | Edit Terms & Privacy |
+| Optimise img | `/admin/optimise` | Compress pending images |
+| Settings | `/admin/settings` | Visible admin email/password only |
+| 7script (hidden) | `/admin/7script` | Site marketing photos (not in sidebar) |
 
 ---
 
@@ -79,12 +76,12 @@ The admin area is a **cookie-authenticated CMS** (single env-based admin user). 
 | UI | React **19.2.8**, Tailwind CSS **4**, Inter via `next/font` |
 | Icons | lucide-react |
 | Database | MySQL **8** (`mysql2`) |
+| Images | `sharp` (upload + optimise) |
 | Auth | HMAC-signed cookie (`nextravel_admin`), 7-day expiry |
 | Forms | Next.js Server Actions |
-| Language | TypeScript (strict) |
 | Seed | `tsx` + `scripts/seed.ts` |
 
-This repo uses **Next.js 16** conventions. Request interception for `/admin` is implemented in `proxy.ts` (not `middleware.ts`). Read `node_modules/next/dist/docs/` before changing framework APIs.
+Admin request gating uses `proxy.ts` (not `middleware.ts`). Prefer docs under `node_modules/next/dist/docs/`.
 
 ---
 
@@ -92,352 +89,261 @@ This repo uses **Next.js 16** conventions. Request interception for `/admin` is 
 
 ```
 Browser
-  ├── Public pages  →  lib/packages.ts
-  │                      ├── MySQL (active packages)     [preferred]
-  │                      └── data/destinations.ts        [fallback]
+  ├── Public pages
+  │     ├── packages / gallery / reviews / legal / site_images  → MySQL
+  │     └── data/*.ts fallbacks when MySQL is down
   │
-  ├── Booking / Contact forms  →  wa.me/{WHATSAPP_NUMBER}
+  ├── Booking / Contact → wa.me/{WHATSAPP_NUMBER}
   │
   └── /admin
-        ├── proxy.ts           cookie present? else → /admin/login
+        ├── proxy.ts            cookie present?
         ├── layout requireAdmin()
-        └── Server Actions     lib/packages-db.ts  →  MySQL
+        └── Server Actions      lib/*-db.ts → MySQL
 ```
 
-**Key modules**
-
-| File | Role |
+| Module | Role |
 | --- | --- |
-| `lib/packages.ts` | Public catalog API. Uses `connection()` so pages stay dynamic. Filters `active !== false`. Falls back to static data on DB error. |
-| `lib/packages-db.ts` | MySQL CRUD, schema bootstrap, seed-if-empty, related tables |
-| `lib/db.ts` | mysql2 pool (singleton on `globalThis`), `ensureDatabase()` |
-| `lib/schema.ts` | `CREATE TABLE IF NOT EXISTS` statements |
-| `lib/auth.ts` | Credential check, token create/verify, `requireAdmin()` |
-| `lib/package-form.ts` | Validates admin `FormData` into `PackageInput` |
-| `lib/uploads.ts` | Saves admin images under `public/uploads/` |
-| `lib/whatsapp.ts` | Builds `wa.me` URLs for inquiry, package, booking, contact |
-| `proxy.ts` | Redirects unauthenticated `/admin/*` (except login) to `/admin/login` |
-
-Destinations listing and detail pages set `dynamic = "force-dynamic"` so admin edits are not served from a stale static snapshot.
+| `lib/packages.ts` / `packages-db.ts` | Package catalog + CRUD |
+| `lib/gallery.ts` / `gallery-db.ts` | Public gallery |
+| `lib/reviews.ts` / `reviews-db.ts` | Reviews carousel |
+| `lib/site-images.ts` / `site-images-db.ts` | Marketing photo slots |
+| `lib/legal.ts` / `legal-db.ts` | Terms & Privacy |
+| `lib/admin-credentials.ts` | Visible + hidden admins in `app_meta` |
+| `lib/auth.ts` | Login token + credential check |
+| `lib/schema.ts` | `CREATE TABLE IF NOT EXISTS` |
+| `lib/db.ts` | mysql2 pool |
+| `proxy.ts` | Unauthenticated `/admin/*` → login |
 
 ---
 
 ## Prerequisites
 
-- **Node.js** 20+ (Next 16)
-- **npm**
-- **MySQL 8** instance (local or remote) pointed to by env vars
+- Node.js **20+**
+- npm
+- MySQL **8** (system install, Homebrew, or **XAMPP** — match `MYSQL_PORT` in `.env.local`)
 
 ---
 
 ## Getting started
 
-### 1. Install dependencies
+### 1. Install
 
 ```bash
 npm install
 ```
 
-### 2. Environment file
+### 2. Environment
 
 ```bash
 cp .env.example .env.local
 ```
 
-Edit `.env.local` to match your MySQL host/user/password. Change `AUTH_SECRET` to a long random string even in development.
+Set MySQL host/port/user/password. Set a long random `AUTH_SECRET`.
 
-### 3. Create database and seed packages
-
-Import the schema, then seed sample data:
+### 3. Database
 
 ```bash
 mysql -u root -p < database/nextravel.sql
-npm run db:setup
+npm run db:seed
 ```
 
-`npm run db:setup` runs `npx tsx scripts/seed.ts`.
-
-The seed script:
-
-1. Loads `.env.local`
-2. Creates the database if the user can (`CREATE DATABASE IF NOT EXISTS`)
-3. Runs schema statements
-4. Inserts sample packages from `featuredDestinations` **only if the `packages` table is empty** and `app_meta.catalog_seeded` is not already `1`
-
-You can also run seed alone:
+XAMPP example:
 
 ```bash
-npm run db:seed    # schema + seed-if-empty
+/Applications/XAMPP/xamppfiles/bin/mysql -u root -P 3307 < database/nextravel.sql
 ```
 
-Default MySQL port is **3306** (`MYSQL_PORT` in `.env.local`).
+Then set `MYSQL_PORT=3307` (and empty password if needed) in `.env.local`.
 
-### 4. Run the app
+`npm run db:seed` will:
+
+1. Load `.env.local`
+2. Create DB if allowed
+3. Run schema (`ensureSchema`)
+4. Ensure **both** default admin accounts
+5. Seed packages / gallery / reviews / legal pages when empty
+
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-Log in at [http://localhost:3000/admin/login](http://localhost:3000/admin/login) with `ADMIN_EMAIL` and `ADMIN_PASSWORD` from `.env.local`.
-
-### Other commands
-
-```bash
-npm run build    # production build
-npm run start    # serve the production build
-npm run lint     # ESLint
-```
+- Site: [http://localhost:3000](http://localhost:3000)
+- Admin: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
 ---
 
 ## Environment variables
 
-Copy from `.env.example`. **Do not commit `.env.local`.** `.gitignore` ignores `.env*`.
-
-| Variable | Required | Default (code) | Purpose |
+| Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `MYSQL_HOST` | Yes (prod) | `127.0.0.1` | MySQL host |
-| `MYSQL_PORT` | Yes (prod) | `3306` | MySQL port |
-| `MYSQL_USER` | Yes (prod) | `nextravel` | App user |
-| `MYSQL_PASSWORD` | Yes (prod) | `nextravel` | App password |
-| `MYSQL_DATABASE` | Yes (prod) | `nextravel` | Database name |
-| `ADMIN_EMAIL` | Yes for login | — | Admin login email (compared case-insensitive) |
-| `ADMIN_PASSWORD` | Yes for login | — | Admin login password (exact match) |
-| `AUTH_SECRET` | Yes for login | — | HMAC secret for the admin cookie. Must be a long random string. |
+| `MYSQL_HOST` | Prod | `127.0.0.1` | MySQL host |
+| `MYSQL_PORT` | Prod | `3306` | MySQL port (XAMPP often `3307`) |
+| `MYSQL_USER` | Prod | `nextravel` | DB user |
+| `MYSQL_PASSWORD` | Prod | `nextravel` | DB password |
+| `MYSQL_DATABASE` | Prod | `nextravel` | Database name |
+| `ADMIN_EMAIL` | Fallback | — | Visible admin fallback if DB empty |
+| `ADMIN_PASSWORD` | Fallback | — | Visible admin fallback |
+| `AUTH_SECRET` | Yes | — | HMAC secret for admin cookie |
+| `NEXT_PUBLIC_SITE_URL` | SEO | — | Canonical / Open Graph base URL |
 
-If `ADMIN_EMAIL`, `ADMIN_PASSWORD`, or `AUTH_SECRET` is missing, login returns: *Admin login is not configured.*
-
-Admin email/password can also be changed later in **Admin → Settings** (stored in `app_meta`).
+Prefer DB credentials (Settings + seeded defaults) over env for day-to-day login. Env remains a fallback.
 
 ---
 
 ## npm scripts
 
-| Script | Command | What it does |
-| --- | --- | --- |
-| `dev` | `next dev` | Development server |
-| `build` | `next build` | Production build |
-| `start` | `next start` | Serve production build |
-| `lint` | `eslint` | Lint |
-| `db:seed` | `npx tsx scripts/seed.ts` | Ensure DB + schema + seed if empty |
-| `db:setup` | same as `db:seed` | First-time database seed |
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve production build |
+| `npm run lint` | ESLint |
+| `npm run db:seed` / `db:setup` | Schema + seed-if-empty + default admins |
 
 ---
 
 ## Public website
 
-| Route | Page |
+| Route | Content source |
 | --- | --- |
-| `/` | Home |
-| `/about` | About, stats, values |
-| `/destinations` | All active packages |
-| `/destinations/[slug]` | Full package page |
-| `/gallery` | Photo grid from `data/gallery.ts` |
-| `/contact` | Contact cards + WhatsApp form |
-| `/terms` | Terms & Conditions (`data/terms.ts`) |
-| `/privacy` | Privacy Policy (`data/privacy.ts`) |
-| `/login` | Placeholder login UI |
-| `/signup` | Placeholder signup UI |
-| `/coming-soon/[slug]` | Placeholder (currently `product`) |
-| `/admin/login` | Admin login |
-| `/admin` | Package dashboard (auth required) |
-| `/admin/packages/new` | Create package |
-| `/admin/packages/[id]/edit` | Edit package |
+| `/` | Home (packages, reviews, site images) |
+| `/about` | About + collage / founder from `site_images` |
+| `/destinations` | Active packages |
+| `/destinations/[slug]` | Package detail |
+| `/gallery` | `gallery_items` |
+| `/contact` | Contact + hero from `site_images` |
+| `/terms` | `legal_pages` slug `terms` |
+| `/privacy` | `legal_pages` slug `privacy` |
+| `/admin/*` | CMS (auth required except login) |
 
-### Home sections (`app/page.tsx`)
+### Destination cards
 
-1. `Navbar`
-2. `Hero` — headline, Get Package (WhatsApp), Watch Demo overlay
-3. `TrustedBrands`
-4. `ValueSection`
-5. `FeaturedDestinations` — up to 6 featured (or any active) packages from MySQL
-6. `DreamDestination`
-7. `ExperienceSection`
-8. `ExpertGuides` — copy from `data/guides.ts`
-9. `ReviewsSection` — `data/reviews.ts`
-10. `Footer` — includes `ConsultationCTA`
+- Show **offer price** (`price`)
+- If set, show **original price** above it with strikethrough (`original_price`)
 
-`PopularDestinations` is implemented but commented out on the homepage.
+### Reviews
 
-### Destination detail (`/destinations/[slug]`)
-
-Rendered only if the package exists **and** is active.
-
-- Hero with cover, name, location, duration, price, rating
-- Photo gallery
-- Overview
-- Experience highlights (title + image)
-- Itinerary accordion (day, title, summary, activities)
-- Included / not included lists
-- Sticky **Book Your Trip Now** form → WhatsApp
-- Up to 3 related packages
-
-Inactive packages return 404 on the public site. Admins can still open them via “View” from the dashboard (you will see 404 while inactive).
-
-### Contact
-
-Displayed:
-
-- Phone / WhatsApp: `+91 8866486477`
-- Email: `info@nextravelholidays.com`
-
-The contact form builds a WhatsApp message (name, number, email, subject, message). It does not send email from the server.
+- Up to many reviews in MySQL; **4 slots** flip every **5 seconds**
+- Two side photos come from `site_images` (`reviews_photo_1`, `reviews_photo_2`)
 
 ---
 
 ## Admin CMS
 
-### Access
+### Sidebar
 
-1. Open `/admin` — unauthenticated users are redirected to `/admin/login?from=...`
-2. Sign in with env credentials
-3. Cookie `nextravel_admin` is set (httpOnly, SameSite=lax, 7 days, `secure` in production)
-4. Dashboard layout calls `requireAdmin()` again (redirects if the token is invalid or expired)
+Packages · Gallery · Reviews · Legal · Optimise img · Settings  
 
-### Dashboard
+**7script** is **not** in the sidebar. Open manually: [http://localhost:3000/admin/7script](http://localhost:3000/admin/7script)
 
-- Stat cards: total / active / inactive / featured
-- If MySQL is down: error panel with import `database/nextravel.sql` and `npm run db:seed`
-- Empty catalog: prompt to create a package
-- Each card: cover, Active toggle, Featured badge, Edit, View, Delete
+### Packages
 
-### Package form fields
+- Offer price + optional original price
+- Green **ON** / gray **OFF** active toggle
+- Featured, sort order, gallery, highlights, itinerary, inclusions
 
-**Card details** (cards + hero)
+### Gallery / Reviews
 
-- Title (slug auto-generated until the slug field is edited)
-- URL slug (unique)
-- Category: `City` · `Mountain` · `Beach` · `Nature` · `Other`
-- Short description, location, duration, price, rating (0–5), sort order
-- Active, Featured
-- Cover image (upload or path / URL)
+- CRUD + ON/OFF active toggle
+- Import sample data buttons
 
-**Page content**
+### Legal
 
-- Full overview
-- Gallery photos
-- Experience highlights (title + image)
-- Itinerary intro, then days (number, title, summary, activities one per line)
-- Included / not included (one item per line)
+- Edit Terms & Conditions and Privacy Policy (sections, intro, last updated)
 
-Validation lives in `lib/package-form.ts`. Duplicate slugs are rejected (`ER_DUP_ENTRY` or a pre-check).
+### Optimise img
 
-After create/update/delete/toggle, these paths are revalidated: `/`, `/destinations`, `/admin`, and `/destinations/[slug]` when known.
+- Lists images waiting to compress; run AI optimise (paths unchanged)
 
-Server Actions accept bodies up to **12 MB** (`next.config.ts`) so image uploads fit under the 8 MB file cap.
+### 7script
+
+- All marketing site photos (home, about, destinations hero, contact, etc.)
 
 ---
 
 ## Authentication
 
-Single admin user. Credentials come from `.env.local` by default, and can be changed in **Admin → Settings** (stored in `app_meta`).
+Two admin accounts are stored in **`app_meta`** (not a separate users table).
 
-1. `validateAdminCredentials` compares email and password with `crypto.timingSafeEqual` (length must match).
-2. `createAdminToken` builds `{ role: "admin", exp }` JSON, HMAC-SHA256 with `AUTH_SECRET`, then base64url.
-3. `verifyAdminToken` checks signature, role, and expiry.
-4. `proxy.ts` only checks that the cookie **exists** for `/admin` routes. Full verification is in `requireAdmin()` / `isAdmin()`.
+### Visible (Settings)
 
-Logout deletes the cookie and redirects to `/admin/login`.
+| | |
+| --- | --- |
+| Email | `pulkit@nextravelholidays.com` |
+| Password | `1234567890` |
 
-Admin pages set `robots: { index: false, follow: false }`.
+Shown and editable in **Admin → Settings**.
+
+### Hidden (system / 7Script)
+
+| | |
+| --- | --- |
+| Email | `admin@7scripttechnologies.com` |
+| Password | `admin@7s@!!` |
+
+Can sign in at `/admin/login`. **Not** shown in Settings. Reserved email cannot be used as the visible Settings email.
+
+Both accounts work for login. Cookie: `nextravel_admin` (httpOnly, 7 days, `secure` in production).
 
 ---
 
 ## Database
 
-### Schema file (`database/nextravel.sql`)
-
-Import once against your MySQL 8 server:
+### Import
 
 ```bash
 mysql -u root -p < database/nextravel.sql
-npm run db:setup
+npm run db:seed
 ```
 
-Default local settings in `.env.example`: host `127.0.0.1`, port `3306`, user/password/database `nextravel`.
+Schema source of truth for fresh installs: `database/nextravel.sql`  
+Runtime bootstrap: `lib/schema.ts` via `ensureSchema()` (also adds missing columns such as `active`, `original_price`).
 
-### Connection pool (`lib/db.ts`)
-
-- Limit: 10
-- Charset: `utf8mb4`
-- Stored on `globalThis` so Next.js hot reload does not open extra pools
-- `mysql2` is listed in `serverExternalPackages`
-
-### Schema (`lib/schema.ts`)
-
-Created automatically on first DB access (`ensureSchema()`).
+### Tables
 
 | Table | Purpose |
 | --- | --- |
-| `packages` | One row per tour: slug, name, cover, rating, copy, location, price, duration, category, itinerary intro, featured, active, sort_order |
-| `package_gallery` | Extra photos (`image_url`, `sort_order`) |
+| `packages` | Tours: slug, copy, `price`, `original_price`, featured, active, sort_order |
+| `package_gallery` | Extra package photos |
 | `package_highlights` | Highlight title + image |
-| `package_itinerary` | Day number, title, summary, `activities` JSON |
-| `package_items` | `kind` = `included` \| `not_included`, label |
-| `app_meta` | Key/value (e.g. `catalog_seeded`) |
+| `package_itinerary` | Days + activities JSON |
+| `package_items` | Included / not included |
+| `gallery_items` | Public gallery |
+| `reviews` | Review carousel |
+| `site_images` | Marketing image slots (`image_key`, `image_url`, `caption`) |
+| `legal_pages` | `terms` / `privacy` pages (`sections_json`) |
+| `app_meta` | Seed flags + admin credentials |
 
-Foreign keys use `ON DELETE CASCADE`. Unique index on `packages.slug`.
+### Important `app_meta` keys
 
-If an older database is missing `active`, the app runs:
-
-```sql
-ALTER TABLE packages ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1 AFTER featured
-```
-
-and ignores `ER_DUP_FIELDNAME`.
+| Key | Meaning |
+| --- | --- |
+| `admin_email` / `admin_password` | Visible admin |
+| `admin_hidden_email` / `admin_hidden_password` | Hidden admin |
+| `admin_defaults_v2` | Defaults applied |
+| `catalog_seeded` / `gallery_seeded` / `reviews_seeded` | Seed guards |
 
 ### Seed behaviour
 
-- `seedIfEmpty()` inserts all `featuredDestinations` only when `COUNT(packages) = 0` **and** `catalog_seeded` is not `1`.
-- If you delete every package after a successful seed, it will **not** auto-reseed (meta flag stays `1`). Use **Import sample packages** in admin, or insert rows yourself.
-- `importSamplePackages()` inserts sample rows whose slugs are not already present.
-
-Sample slugs in `data/destinations.ts`:
-
-- `udaipur-mount-abu`
-- `bali`
-- `goa`
-- `kerala`
-- `kashmir`
-- `manali-kasol-adventure`
-- `kullu-manali-kasol-honeymoon`
-- `shimla-manali-honeymoon`
-- `himachal-amritsar`
+- Packages: insert samples only when table empty and `catalog_seeded` ≠ `1`
+- Gallery / reviews / legal: seed-if-empty from `data/*`
+- Admins: ensured on seed and on credential reads
 
 ---
 
 ## Package data model
 
-Shared TypeScript type: `Destination` in `data/destinations.ts`. DB rows add `id`, `featured`, `active`, `sortOrder` (`PackageRecord`).
+Type: `Destination` in `data/destinations.ts` (+ `id`, `featured`, `active`, `sortOrder` from DB).
 
-| Field | Public use |
+| Field | Use |
 | --- | --- |
-| `slug` | URL `/destinations/[slug]` |
-| `name` | Card title, page title, WhatsApp package name |
-| `image` | Card + hero cover |
-| `gallery` | Detail gallery (falls back to cover) |
-| `rating` | Hero |
-| `description` | Card blurb |
-| `overview` | Detail + meta description |
-| `location` | Card + hero |
-| `price` | Card + hero (display string, e.g. `₹7,000`) |
-| `duration` | Card + hero |
-| `category` | Filtering / admin |
-| `highlights` | Detail grid |
-| `itineraryIntro` + `itinerary` | Accordion |
-| `included` / `notIncluded` | Detail lists |
-| `featured` | Homepage grid |
+| `price` | Offer / sale price on cards and hero |
+| `originalPrice` | Optional MRP shown with strikethrough |
 | `active` | Public visibility |
-| `sortOrder` | List order (`ORDER BY sort_order, id`) |
-
-Public helpers in `lib/packages.ts`:
-
-- `getAllDestinations()` — active only
-- `getDestination(slug)` — active only
-- `getFeaturedDestinations(limit)` — featured first, else any active
-- `getDestinationsByCategory(category)` — first 6
+| `featured` | Homepage featured grid |
+| `sortOrder` | List order |
 
 ---
 
@@ -445,43 +351,20 @@ Public helpers in `lib/packages.ts`:
 
 | Kind | Where |
 | --- | --- |
-| Site assets | `public/images/` |
-| Favicon | `public/favicon.png`, `app/icon.png`, `app/apple-icon.png` |
-| Admin uploads | `public/uploads/{timestamp}-{safe-filename}` |
+| Static assets | `public/images/` |
+| Admin uploads | `public/uploads/` |
+| Marketing slots | `site_images` → often `/images/...` or `/uploads/...` |
+| Gallery / reviews / packages | Their own tables |
 
-`saveUploadedImage`:
-
-- Types: `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/gif`
-- Max size: **8 MB**
-- Returns a public path such as `/uploads/1710000000000-cover.jpg`
-
-`public/uploads/*` is gitignored except `.gitkeep`. Uploaded files must be backed up or stored on persistent disk in production.
-
-`next.config.ts` allows `next/image` for any `https` host plus `localhost` / `127.0.0.1`. Remote URLs use `unoptimized` where needed (`isRemoteSrc`).
-
-Admin image fields accept:
-
-- A local path (`/images/kerala.jpg`)
-- An uploaded `/uploads/...` path
-- A full `https://...` URL
+Upload limits: JPG/PNG/WEBP/GIF, max **8 MB**. Optimise page compresses pending files in place.
 
 ---
 
 ## WhatsApp inquiries
 
-Number is hardcoded in `lib/whatsapp.ts`: **918866486477**.
+Number in `lib/whatsapp.ts`: **918866486477**.
 
-| Helper | Used on |
-| --- | --- |
-| `whatsappInquiryUrl` | Navbar “Get Inquiry”, contact card |
-| `whatsappPackageUrl` | Hero “Get Package” |
-| `whatsappConsultantUrl` | Footer consultation CTA |
-| `buildBookingWhatsAppUrl` | Destination booking form |
-| `buildContactWhatsAppUrl` | Contact page form |
-
-Booking messages include package name, traveler name, WhatsApp number, travel date (`DD/MM/YYYY`), traveler count, and notes.
-
-To change the business number, update `WHATSAPP_NUMBER` in `lib/whatsapp.ts` (and the tel/display strings on the contact page).
+Helpers: inquiry, package, consultant, booking form, contact form.
 
 ---
 
@@ -489,133 +372,88 @@ To change the business number, update `WHATSAPP_NUMBER` in `lib/whatsapp.ts` (an
 
 ```
 app/
-  layout.tsx                 Root layout, Inter, metadata, favicon
-  page.tsx                   Home
-  globals.css                Tailwind v4 theme tokens
-  about/ contact/ gallery/   Marketing pages
-  destinations/              Index + [slug] detail
-  privacy/ terms/            Legal
-  login/ signup/             Placeholder auth UI
-  coming-soon/[slug]/        Placeholder
-  not-found.tsx
+  page.tsx                    Home
+  about/ contact/ gallery/
+  destinations/               Index + [slug]
+  privacy/ terms/             Legal (from MySQL)
   admin/
-    actions.ts               Server Actions (login, CRUD, upload, import)
-    login/page.tsx
+    actions.ts
+    login/
     (dashboard)/
-      layout.tsx             requireAdmin()
-      page.tsx               Package dashboard
-      packages/new/
-      packages/[id]/edit/
+      page.tsx                Packages
+      gallery/ reviews/ legal/
+      optimise/ settings/
+      7script/                Hidden site photos CMS
+      packages/
 
-components/                  Public UI
-components/admin/            AdminShell, PackageForm, ImageField, buttons
+components/                   Public UI (ReviewsCarousel, DestinationCard, …)
+components/admin/             AdminShell, forms, StatusToggle (ON/OFF)
 
-data/                        Static content and sample packages
-  destinations.ts            Types + sample catalog
-  gallery.ts reviews.ts guides.ts
-  privacy.ts terms.ts comingSoon.ts
-
-lib/
-  db.ts packages-db.ts schema.ts packages.ts
-  auth.ts auth-constants.ts
-  package-form.ts uploads.ts whatsapp.ts utils.ts
-
-scripts/seed.ts              CLI seed
-proxy.ts                     Admin cookie gate
-database/nextravel.sql       MySQL schema + admin seed
-next.config.ts
+data/                         Static fallbacks + samples
+lib/                          db, *-db, auth, schema, uploads, whatsapp
+scripts/seed.ts
+database/nextravel.sql
+proxy.ts
 ```
-
-Path alias: `@/*` → repo root (`tsconfig.json`).
 
 ---
 
 ## Fallback when MySQL is down
 
-`lib/packages.ts` catches connection/query errors, logs once (`[packages] MySQL is unavailable, using static destinations.`), and serves **active** entries from `getStaticDestinations()`.
+Public loaders fall back to `data/destinations.ts`, `data/gallery.ts`, `data/reviews.ts`, `data/terms.ts` / `data/privacy.ts`, and default site image paths.
 
-The **admin dashboard does not fall back**. It shows a MySQL error and asks you to import the schema and seed.
-
-So:
-
-- Marketing site can still demo with sample packages
-- CMS requires a live database
+**Admin does not fall back** — it shows a MySQL error until the DB is up.
 
 ---
 
 ## Design system
 
-Dark theme in `app/globals.css`:
+Dark theme (`app/globals.css`): black background, `#ededed` text, brand `#e20e17`, muted `#9a9a9a`, cards `#111111`. Font: **Inter**.
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--background` | `#000000` | Page |
-| `--foreground` | `#ededed` | Headings / body |
-| `--brand` / `--pink` | `#e20e17` | CTAs, accents |
-| `--muted` | `#9a9a9a` | Secondary text |
-| `--card` | `#111111` | Cards |
-| `--soft` | `#141414` | Panels |
-| `--line` | `#2a2a2a` | Borders |
-
-Font: **Inter** (`--font-inter`). Brand red `#E20E17` is used on buttons, underlines, and admin accents.
+Admin active toggle: green **ON** / gray **OFF** (`StatusToggle`).
 
 ---
 
 ## Development notes
 
-- **Next.js 16:** prefer current docs over older App Router examples. `proxy.ts` replaces the old middleware file for this app’s admin gate.
-- **Dynamic catalog:** destination routes are force-dynamic; `getAllDestinations` awaits `connection()` so they are not statically frozen at build time.
-- **Transactions:** insert/update wrap the package row and related tables; rollback on failure.
-- **Slug:** `slugify()` lowercases, replaces non-alphanumerics with `-`.
-- **Customer login:** `/login` and `/signup` forms currently `action="/destinations"` — they are not wired to auth.
-- **AGENTS.md:** generated by `next dev`; leave it in place.
+- Next.js 16: use `proxy.ts` for admin gate; check current docs before API changes.
+- Destination routes are force-dynamic.
+- Package writes use transactions across related tables.
+- Customer `/login` and `/signup` are UI placeholders only.
 
 ---
 
 ## Production checklist
 
-1. Set all env vars on the host (never use example passwords).
-2. Use a strong unique `AUTH_SECRET` and a strong `ADMIN_PASSWORD`.
-3. Point `MYSQL_*` at a managed MySQL 8 instance.
-4. Run schema/seed once against that instance (`mysql < database/nextravel.sql` then `npm run db:seed`, or migrate tables yourself).
-5. Persist `public/uploads/` (or move uploads to object storage later).
-6. Serve HTTPS so the admin cookie can use `secure: true`.
-7. Restrict who can reach `/admin` (VPN, IP allowlist, or similar) in addition to the cookie.
-8. Run `npm run build` and `npm run start` (or your platform’s Next.js adapter).
-9. Confirm WhatsApp number and contact email before launch.
-
-Vercel (or similar) needs a reachable MySQL host. Uploaded files on ephemeral filesystems will disappear unless you attach a volume or external storage.
+1. Strong unique `AUTH_SECRET` and admin passwords (change defaults).
+2. Managed MySQL 8 + run `nextravel.sql` / `db:seed` once.
+3. Persist `public/uploads/`.
+4. HTTPS for secure admin cookies.
+5. Restrict `/admin` (VPN / IP allowlist recommended).
+6. Confirm WhatsApp number and contact email.
+7. `npm run build` && `npm run start` (or platform adapter).
 
 ---
 
 ## Troubleshooting
 
-**Admin login: “Admin login is not configured”**  
-Add `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `AUTH_SECRET` to `.env.local` and restart `npm run dev`.
+**Admin login not configured**  
+Set `AUTH_SECRET` (and optionally `ADMIN_EMAIL` / `ADMIN_PASSWORD`) in `.env.local`, restart dev server.
 
-**Admin login: “Invalid email or password”**  
-Email is trimmed and lowercased. Password must match exactly (including spaces).
+**Invalid email or password**  
+Use visible or hidden account exactly. Email is lowercased; password is exact.
 
-**Dashboard: MySQL is not connected**  
-Confirm MySQL is running and `.env.local` host/port (`127.0.0.1:3306`). Import `database/nextravel.sql`, then `npm run db:seed`.
+**MySQL is not connected**  
+Check host/port (XAMPP often **3307**). Import `database/nextravel.sql`, run `npm run db:seed`.
 
-**Public site shows sample packages, admin is empty or errors**  
-Public fallback is on; admin talks only to MySQL. Fix the database connection.
+**Where are admin users in phpMyAdmin?**  
+Open table **`app_meta`** — keys `admin_email`, `admin_password`, `admin_hidden_*`. There is no `users` table.
 
-**New package does not appear on the site**  
-Check **Active**. Featured-only homepage grid needs **Featured** (or no featured rows, in which case any active packages fill the grid).
-
-**Slug already exists**  
-Change the slug. Unique index `uq_packages_slug`.
-
-**Image upload fails**  
-Use JPG/PNG/WEBP/GIF under 8 MB. Ensure `public/uploads` is writable.
-
-**MySQL port already in use**  
-Change `MYSQL_PORT` in `.env.local` to match your server.
+**Package missing on site**  
+Ensure Active is **ON**. Check Featured for homepage grid.
 
 **Seed did not insert packages**  
-Table is not empty, or `catalog_seeded` is already `1`. Import from admin or insert manually.
+Table not empty or `catalog_seeded` is `1`. Use Import samples in admin.
 
-**Cookie not set in production**  
-Site must be HTTPS (`secure` cookie). Confirm `AUTH_SECRET` is set the same on every instance.
+**Cookie issues in production**  
+Need HTTPS and the same `AUTH_SECRET` on all instances.

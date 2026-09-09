@@ -160,7 +160,7 @@ export default function PackageForm({ mode, initial, action }: PackageFormProps)
             />
           </label>
           <label>
-            <span className="text-sm font-medium text-[#EDEDED]">Price</span>
+            <span className="text-sm font-medium text-[#EDEDED]">Offer price</span>
             <input
               name="price"
               required
@@ -168,6 +168,16 @@ export default function PackageForm({ mode, initial, action }: PackageFormProps)
               placeholder="₹7,000"
               className={fieldClass}
             />
+          </label>
+          <label>
+            <span className="text-sm font-medium text-[#EDEDED]">Original price (optional)</span>
+            <input
+              name="originalPrice"
+              defaultValue={initial?.originalPrice ?? ""}
+              placeholder="₹10,000"
+              className={fieldClass}
+            />
+            <span className="mt-1 block text-xs text-muted">Shown with strikethrough next to offer price.</span>
           </label>
           <label>
             <span className="text-sm font-medium text-[#EDEDED]">Rating</span>

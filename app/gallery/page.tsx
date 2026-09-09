@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import type { GalleryAspect } from "@/data/gallery";
 import { getGalleryItems } from "@/lib/gallery";
+import { getSiteImages } from "@/lib/site-images";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ const aspectClass: Record<GalleryAspect, string> = {
 };
 
 export default async function GalleryPage() {
-  const items = await getGalleryItems();
+  const [items, images] = await Promise.all([getGalleryItems(), getSiteImages()]);
 
   return (
     <>
@@ -40,7 +41,7 @@ export default async function GalleryPage() {
           label="Gallery"
           title="Moments from the journeys we plan"
           description="A visual look at the places, people and adventures that make every NexTravel holiday memorable."
-          image="/images/alps.jpg"
+          image={images.gallery_hero?.src ?? "/images/alps.jpg"}
           imageAlt="Travel gallery inspiration"
           cta={{ href: "/destinations", label: "Explore Destinations" }}
           secondaryCta={{ href: "/contact", label: "Plan My Trip" }}

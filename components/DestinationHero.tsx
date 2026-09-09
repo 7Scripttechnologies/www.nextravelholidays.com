@@ -47,7 +47,13 @@ export default function DestinationHero({ destination }: DestinationHeroProps) {
             </span>
             <span>{destination.duration}</span>
             <span>
-              From <span className="font-bold text-white">{destination.price}</span>
+              From{" "}
+              {destination.originalPrice ? (
+                <span className="mr-2 font-medium text-[#9A9A9A] line-through decoration-[#E20E17]/80">
+                  {destination.originalPrice}
+                </span>
+              ) : null}
+              <span className="font-bold text-white">{destination.price}</span>
             </span>
           </div>
 

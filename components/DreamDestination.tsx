@@ -2,6 +2,7 @@ import Image from "next/image";
 import Container from "@/components/Container";
 import FadeUp from "@/components/FadeUp";
 import SectionLabel from "@/components/SectionLabel";
+import { getSiteImages } from "@/lib/site-images";
 
 const stats = [
   { value: "4k+", label: "Satisfied Customers" },
@@ -10,17 +11,21 @@ const stats = [
   { value: "100%", label: "Dedication" },
 ];
 
-export default function DreamDestination() {
+export default async function DreamDestination() {
+  const images = await getSiteImages();
+  const src = images.home_dream?.src ?? "/images/dream-visual.jpg";
+
   return (
     <section className="py-16 md:py-24">
       <Container className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
         <FadeUp className="relative mx-auto aspect-[1024/831] w-full min-w-0 max-w-[480px] lg:max-w-[540px]">
           <Image
-            src="/images/dream-visual.jpg"
+            src={src}
             alt="Traveler with a suitcase and passport ready for a dream destination"
             fill
             sizes="(max-width: 768px) 90vw, 540px"
             className="object-contain"
+            unoptimized={/^https?:\/\//i.test(src)}
           />
         </FadeUp>
 

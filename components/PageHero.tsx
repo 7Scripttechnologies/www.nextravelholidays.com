@@ -33,6 +33,7 @@ export default function PageHero({
         priority
         sizes="100vw"
         className={`object-cover ${imageClassName ?? "object-center"}`}
+        unoptimized={/^https?:\/\//i.test(image)}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/35" />
       <div className="absolute inset-0 bg-black/25" />

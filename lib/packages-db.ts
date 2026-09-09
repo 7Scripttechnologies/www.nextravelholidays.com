@@ -25,6 +25,7 @@ export type PackageInput = {
   overview: string;
   location: string;
   price: string;
+  originalPrice?: string;
   duration: string;
   category: DestinationCategory;
   itineraryIntro: string;
@@ -48,6 +49,7 @@ interface PackageRow extends RowDataPacket {
   overview: string;
   location: string;
   price: string;
+  original_price: string | null;
   duration: string;
   category: DestinationCategory;
   itinerary_intro: string | null;
@@ -120,6 +122,7 @@ function toPackage(
     overview: row.overview,
     location: row.location,
     price: row.price,
+    originalPrice: row.original_price || undefined,
     duration: row.duration,
     category: row.category,
     highlights: extras?.highlights ?? [],
@@ -153,6 +156,16 @@ export async function ensureSchema() {
     if (code !== "ER_DUP_FIELDNAME") throw error;
   }
 
+  // Existing databases created before `original_price` existed
+  try {
+    await pool.query(
+      "ALTER TABLE packages ADD COLUMN original_price VARCHAR(64) NULL AFTER price",
+    );
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (code !== "ER_DUP_FIELDNAME") throw error;
+  }
+
   schemaReady = true;
 }
 
@@ -166,6 +179,7 @@ export function destinationToInput(destination: Destination): PackageInput {
     overview: destination.overview,
     location: destination.location,
     price: destination.price,
+    originalPrice: destination.originalPrice,
     duration: destination.duration,
     category: destination.category,
     itineraryIntro: destination.itineraryIntro,
@@ -235,9 +249,9 @@ export async function insertPackage(input: PackageInput, existingConnection?: Po
 
     const [result] = await connection.query<ResultSetHeader>(
       `INSERT INTO packages (
-        slug, name, image, rating, description, overview, location, price, duration,
+        slug, name, image, rating, description, overview, location, price, original_price, duration,
         category, itinerary_intro, featured, active, sort_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         input.slug,
         input.name,
@@ -247,6 +261,7 @@ export async function insertPackage(input: PackageInput, existingConnection?: Po
         input.overview,
         input.location,
         input.price,
+        input.originalPrice?.trim() || null,
         input.duration,
         input.category,
         input.itineraryIntro,
@@ -348,7 +363,7 @@ export async function updatePackage(id: number, input: PackageInput) {
     const [result] = await connection.query<ResultSetHeader>(
       `UPDATE packages SET
         slug = ?, name = ?, image = ?, rating = ?, description = ?, overview = ?,
-        location = ?, price = ?, duration = ?, category = ?, itinerary_intro = ?,
+        location = ?, price = ?, original_price = ?, duration = ?, category = ?, itinerary_intro = ?,
         featured = ?, active = ?, sort_order = ?
       WHERE id = ?`,
       [
@@ -360,6 +375,7 @@ export async function updatePackage(id: number, input: PackageInput) {
         input.overview,
         input.location,
         input.price,
+        input.originalPrice?.trim() || null,
         input.duration,
         input.category,
         input.itineraryIntro,

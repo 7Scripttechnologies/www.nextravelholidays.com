@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { closePool, ensureDatabase } from "../lib/db";
+import { ensureDefaultAdmins } from "../lib/admin-credentials";
 import { seedGalleryIfEmpty } from "../lib/gallery-db";
+import { seedLegalPagesIfEmpty } from "../lib/legal-db";
 import { ensureSchema, seedIfEmpty } from "../lib/packages-db";
+import { seedReviewsIfEmpty } from "../lib/reviews-db";
 
 function loadEnvLocal() {
   const envPath = resolve(process.cwd(), ".env.local");
@@ -39,6 +42,9 @@ async function main() {
     // App users cannot always create databases. Continue if the configured DB is already there.
   }
   await ensureSchema();
+  await ensureDefaultAdmins();
+  console.log("Admin accounts ready (visible + hidden).");
+
   const result = await seedIfEmpty();
   if (result.seeded) {
     console.log(`Seeded ${result.count} packages into MySQL.`);
@@ -51,6 +57,20 @@ async function main() {
     console.log(`Seeded ${gallery.count} gallery photos into MySQL.`);
   } else {
     console.log(`Gallery photos in database: ${gallery.count}.`);
+  }
+
+  const reviewSeed = await seedReviewsIfEmpty();
+  if (reviewSeed.seeded) {
+    console.log(`Seeded ${reviewSeed.count} reviews into MySQL.`);
+  } else {
+    console.log(`Reviews in database: ${reviewSeed.count}.`);
+  }
+
+  const legal = await seedLegalPagesIfEmpty();
+  if (legal.seeded > 0) {
+    console.log(`Seeded ${legal.seeded} legal page(s) into MySQL.`);
+  } else {
+    console.log("Legal pages already in database.");
   }
   await closePool();
 }
