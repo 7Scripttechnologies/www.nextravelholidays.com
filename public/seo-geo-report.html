@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NexTravel Holidays — SEO &amp; GEO Colour Report</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --card: #f7f8fa;
+        --line: #e5e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --brand: #e20e17;
+        --ok: #059669;
+        --warn: #d97706;
+        --off: #ea580c;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 24px 24px 40px; }
+      h1 { font-size: 24px; margin: 0 0 6px; }
+      h2 {
+        font-size: 15px; margin: 22px 0 10px; color: #0f172a;
+        border-left: 4px solid var(--brand); padding-left: 10px;
+      }
+      .sub { color: #d1d5db; font-size: 12px; margin: 0; }
+      .toolbar { display: flex; gap: 10px; margin-bottom: 14px; }
+      .btn {
+        border: 0; background: var(--brand); color: #fff; padding: 10px 14px;
+        border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700;
+      }
+      .hero {
+        background: #111827;
+        background: linear-gradient(135deg, #111827 0%, #1f2937 55%, #7f1d1d 100%);
+        color: #fff; border-radius: 14px; padding: 18px 20px; margin-bottom: 14px;
+      }
+      .hero h1 { color: #fff; }
+      .badge {
+        display: inline-block; background: #e20e17; color: #fff; font-size: 10px;
+        font-weight: 700; padding: 4px 8px; border-radius: 999px; margin-bottom: 8px;
+      }
+      .scores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+      .score {
+        background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 10px; padding: 12px;
+      }
+      .score strong { display: block; font-size: 28px; line-height: 1.1; margin-bottom: 2px; }
+      .score span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85; }
+      .s1 strong { color: #34d399; }
+      .s2 strong { color: #60a5fa; }
+      .s3 strong { color: #c4b5fd; }
+      .s4 strong { color: #fbbf24; }
+      .grid2 { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 12px; }
+      .card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+      }
+      .card h3 { margin: 0 0 8px; font-size: 13px; }
+      .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+      .dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+      .bar-row { display: grid; grid-template-columns: 170px 1fr 40px; gap: 8px; align-items: center; margin: 5px 0; font-size: 10px; }
+      .bar-track { height: 11px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+      .bar-fill { height: 100%; border-radius: 999px; }
+      table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      th, td { border-bottom: 1px solid var(--line); padding: 7px 5px; text-align: left; vertical-align: top; }
+      th { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
+      .ok { color: var(--ok); font-weight: 700; }
+      .partial { color: var(--warn); font-weight: 700; }
+      .off { color: var(--off); font-weight: 700; }
+      .cities { display: flex; flex-wrap: wrap; gap: 5px; }
+      .chip {
+        background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+        border-radius: 999px; padding: 4px 8px; font-size: 10px; font-weight: 600;
+      }
+      .next { margin: 0; padding-left: 18px; }
+      .next li { margin: 5px 0; font-size: 12px; }
+      footer {
+        margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line);
+        font-size: 10px; color: var(--muted);
+      }
+      @media print {
+        .toolbar { display: none !important; }
+        .wrap { padding: 0; max-width: none; }
+        body, .hero, .card, .chip, .bar-fill, .score, svg * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      }
+      @page { size: A4; margin: 12mm; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="toolbar">
+        <button class="btn" type="button" onclick="window.print()">Download / Print Colour PDF</button>
+      </div>
+
+      <section class="hero">
+        <div class="badge">COLOUR SEO + GEO AUDIT</div>
+        <h1>NexTravel Holidays — SEO &amp; GEO Report</h1>
+        <p class="sub">Founder &amp; CEO: Pulkit Karangiya · 7 Sep 2026 · https://nextravelholidays.com</p>
+        <div class="scores">
+          <div class="score s1"><strong>92%</strong><span>Overall readiness</span></div>
+          <div class="score s2"><strong>94%</strong><span>Basic SEO</span></div>
+          <div class="score s3"><strong>91%</strong><span>GEO / Gujarat</span></div>
+          <div class="score s4"><strong>+10%</strong><span>vs previous (82%)</span></div>
+        </div>
+      </section>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Score by area (coloured bar graph)</h3>
+          <div class="bar-row"><div>Title &amp; meta</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:#059669"></div></div><div style="color:#059669;font-weight:700">96%</div></div>
+          <div class="bar-row"><div>Keywords (cities)</div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#059669"></div></div><div style="color:#059669;font-weight:700">95%</div></div>
+          <div class="bar-row"><div>Open Graph / Twitter</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:#059669"></div></div><div style="color:#059669;font-weight:700">92%</div></div>
+          <div class="bar-row"><div>Canonical + SITE_URL</div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#059669"></div></div><div style="color:#059669;font-weight:700">95%</div></div>
+          <div class="bar-row"><div>robots.txt</div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#059669"></div></div><div style="color:#059669;font-weight:700">95%</div></div>
+          <div class="bar-row"><div>sitemap.xml</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:#059669"></div></div><div style="color:#059669;font-weight:700">92%</div></div>
+          <div class="bar-row"><div>JSON-LD schema</div><div class="bar-track"><div class="bar-fill" style="width:94%;background:#059669"></div></div><div style="color:#059669;font-weight:700">94%</div></div>
+          <div class="bar-row"><div>Founder &amp; CEO entity</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:#059669"></div></div><div style="color:#059669;font-weight:700">98%</div></div>
+          <div class="bar-row"><div>Social sameAs</div><div class="bar-track"><div class="bar-fill" style="width:94%;background:#059669"></div></div><div style="color:#059669;font-weight:700">94%</div></div>
+          <div class="bar-row"><div>GEO tags (IN-GJ)</div><div class="bar-track"><div class="bar-fill" style="width:90%;background:#059669"></div></div><div style="color:#059669;font-weight:700">90%</div></div>
+          <div class="bar-row"><div>Gujarat city coverage</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:#059669"></div></div><div style="color:#059669;font-weight:700">96%</div></div>
+          <div class="bar-row"><div>On-page content</div><div class="bar-track"><div class="bar-fill" style="width:90%;background:#059669"></div></div><div style="color:#059669;font-weight:700">90%</div></div>
+          <div class="bar-row"><div>NAP / street address</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:#d97706"></div></div><div style="color:#d97706;font-weight:700">72%</div></div>
+          <div class="bar-row"><div>Search Console + GBP</div><div class="bar-track"><div class="bar-fill" style="width:35%;background:#ea580c"></div></div><div style="color:#ea580c;font-weight:700">35%</div></div>
+          <div class="bar-row"><div>Package Tour schema</div><div class="bar-track"><div class="bar-fill" style="width:55%;background:#d97706"></div></div><div style="color:#d97706;font-weight:700">55%</div></div>
+          <div class="legend">
+            <span><i class="dot" style="background:#059669"></i>Done</span>
+            <span><i class="dot" style="background:#d97706"></i>Partial</span>
+            <span><i class="dot" style="background:#ea580c"></i>Off-site</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Category mix (donut graph)</h3>
+          <svg viewBox="0 0 220 220" width="100%" style="max-width:230px;margin:0 auto;display:block">
+            <circle cx="110" cy="110" r="70" fill="none" stroke="#e5e7eb" stroke-width="28"></circle>
+            <circle cx="110" cy="110" r="70" fill="none" stroke="#059669" stroke-width="28"
+              stroke-dasharray="329.7 109.9" transform="rotate(-90 110 110)"></circle>
+            <circle cx="110" cy="110" r="70" fill="none" stroke="#d97706" stroke-width="28"
+              stroke-dasharray="65.94 373.66" stroke-dashoffset="-329.7" transform="rotate(-90 110 110)"></circle>
+            <circle cx="110" cy="110" r="70" fill="none" stroke="#ea580c" stroke-width="28"
+              stroke-dasharray="43.96 395.64" stroke-dashoffset="-395.64" transform="rotate(-90 110 110)"></circle>
+            <text x="110" y="104" text-anchor="middle" font-size="22" font-weight="700" fill="#111827">92%</text>
+            <text x="110" y="124" text-anchor="middle" font-size="11" fill="#6b7280">Overall</text>
+          </svg>
+          <div class="legend" style="justify-content:center">
+            <span><i class="dot" style="background:#059669"></i>Done ~75%</span>
+            <span><i class="dot" style="background:#d97706"></i>Partial ~15%</span>
+            <span><i class="dot" style="background:#ea580c"></i>Off-site ~10%</span>
+          </div>
+        </div>
+      </div>
+
+      <h2>Before vs After Gujarat upgrade</h2>
+      <div class="card">
+        <svg viewBox="0 0 640 210" width="100%" height="200" role="img" aria-label="Before vs after scores">
+          <rect width="640" height="210" fill="#f7f8fa"></rect>
+          <line x1="60" y1="20" x2="60" y2="170" stroke="#d1d5db" />
+          <line x1="60" y1="170" x2="610" y2="170" stroke="#d1d5db" />
+          <line x1="60" y1="132.5" x2="610" y2="132.5" stroke="#e5e7eb" />
+          <line x1="60" y1="95" x2="610" y2="95" stroke="#e5e7eb" />
+          <line x1="60" y1="57.5" x2="610" y2="57.5" stroke="#e5e7eb" />
+          <text x="48" y="174" text-anchor="end" font-size="10" fill="#6b7280">0</text>
+          <text x="48" y="136" text-anchor="end" font-size="10" fill="#6b7280">25</text>
+          <text x="48" y="99" text-anchor="end" font-size="10" fill="#6b7280">50</text>
+          <text x="48" y="61" text-anchor="end" font-size="10" fill="#6b7280">75</text>
+          <text x="48" y="24" text-anchor="end" font-size="10" fill="#6b7280">100</text>
+
+          <rect x="110" y="47" width="40" height="123" fill="#93c5fd" rx="4"></rect>
+          <rect x="158" y="32" width="40" height="138" fill="#2563eb" rx="4"></rect>
+          <text x="154" y="190" text-anchor="middle" font-size="11" fill="#374151">Overall</text>
+          <text x="130" y="42" text-anchor="middle" font-size="10" fill="#1d4ed8">82%</text>
+          <text x="178" y="27" text-anchor="middle" font-size="10" fill="#1e40af">92%</text>
+
+          <rect x="260" y="38" width="40" height="132" fill="#6ee7b7" rx="4"></rect>
+          <rect x="308" y="29" width="40" height="141" fill="#059669" rx="4"></rect>
+          <text x="304" y="190" text-anchor="middle" font-size="11" fill="#374151">Basic SEO</text>
+          <text x="280" y="33" text-anchor="middle" font-size="10" fill="#047857">88%</text>
+          <text x="328" y="24" text-anchor="middle" font-size="10" fill="#065f46">94%</text>
+
+          <rect x="410" y="62" width="40" height="108" fill="#c4b5fd" rx="4"></rect>
+          <rect x="458" y="33.5" width="40" height="136.5" fill="#7c3aed" rx="4"></rect>
+          <text x="454" y="190" text-anchor="middle" font-size="11" fill="#374151">GEO Gujarat</text>
+          <text x="430" y="57" text-anchor="middle" font-size="10" fill="#6d28d9">72%</text>
+          <text x="478" y="28" text-anchor="middle" font-size="10" fill="#5b21b6">91%</text>
+
+          <rect x="520" y="18" width="12" height="12" fill="#93c5fd"></rect>
+          <text x="538" y="28" font-size="11" fill="#374151">Before</text>
+          <rect x="520" y="38" width="12" height="12" fill="#2563eb"></rect>
+          <text x="538" y="48" font-size="11" fill="#374151">After</text>
+        </svg>
+      </div>
+
+      <h2>Detailed checklist</h2>
+      <div class="card" style="padding:6px 10px">
+        <table>
+          <thead><tr><th>Area</th><th>Status</th><th>Score</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Title &amp; meta description</td><td class="ok">Done</td><td><strong>96%</strong></td><td>Gujarat + founder + city intent</td></tr>
+            <tr><td>Keywords (Gujarat cities)</td><td class="ok">Done</td><td><strong>95%</strong></td><td>34 cities × travel/holiday/tour terms</td></tr>
+            <tr><td>Open Graph / Twitter</td><td class="ok">Done</td><td><strong>92%</strong></td><td>OG + Twitter Gujarat-focused copy</td></tr>
+            <tr><td>Canonical + SITE_URL</td><td class="ok">Done</td><td><strong>95%</strong></td><td>NEXT_PUBLIC_SITE_URL set</td></tr>
+            <tr><td>robots.txt</td><td class="ok">Done</td><td><strong>95%</strong></td><td>Public allow; admin/login blocked</td></tr>
+            <tr><td>sitemap.xml</td><td class="ok">Done</td><td><strong>92%</strong></td><td>Static pages + destination packages</td></tr>
+            <tr><td>JSON-LD schema</td><td class="ok">Done</td><td><strong>94%</strong></td><td>TravelAgency + LocalBusiness + FAQ</td></tr>
+            <tr><td>Founder &amp; CEO entity</td><td class="ok">Done</td><td><strong>98%</strong></td><td>Pulkit Karangiya in meta, copy, schema</td></tr>
+            <tr><td>Social sameAs</td><td class="ok">Done</td><td><strong>94%</strong></td><td>Instagram + Google Business Profile</td></tr>
+            <tr><td>GEO tags (IN-GJ)</td><td class="ok">Done</td><td><strong>90%</strong></td><td>IN-GJ + Gujarat placename + ICBM</td></tr>
+            <tr><td>Gujarat city coverage</td><td class="ok">Done</td><td><strong>96%</strong></td><td>34 cities covered</td></tr>
+            <tr><td>On-page Gujarat content</td><td class="ok">Done</td><td><strong>90%</strong></td><td>About, Contact, Footer, Destinations</td></tr>
+            <tr><td>NAP / street address</td><td class="partial">Partial</td><td><strong>72%</strong></td><td>Add exact shop address</td></tr>
+            <tr><td>Search Console + GBP</td><td class="off">Off-site</td><td><strong>35%</strong></td><td>Submit sitemap after deploy</td></tr>
+            <tr><td>Package Tour schema</td><td class="partial">Partial</td><td><strong>55%</strong></td><td>Optional TouristTrip remaining</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Gujarat cities covered (34)</h2>
+      <div class="card">
+        <div class="cities">
+          <span class="chip">Ahmedabad</span><span class="chip">Surat</span><span class="chip">Vadodara</span>
+          <span class="chip">Rajkot</span><span class="chip">Bhavnagar</span><span class="chip">Jamnagar</span>
+          <span class="chip">Junagadh</span><span class="chip">Gandhinagar</span><span class="chip">Anand</span>
+          <span class="chip">Nadiad</span><span class="chip">Mehsana</span><span class="chip">Morbi</span>
+          <span class="chip">Bharuch</span><span class="chip">Navsari</span><span class="chip">Valsad</span>
+          <span class="chip">Vapi</span><span class="chip">Porbandar</span><span class="chip">Surendranagar</span>
+          <span class="chip">Godhra</span><span class="chip">Palanpur</span><span class="chip">Bhuj</span>
+          <span class="chip">Gandhidham</span><span class="chip">Veraval</span><span class="chip">Botad</span>
+          <span class="chip">Amreli</span><span class="chip">Dahod</span><span class="chip">Himatnagar</span>
+          <span class="chip">Patan</span><span class="chip">Dwarka</span><span class="chip">Somnath</span>
+          <span class="chip">Modasa</span><span class="chip">Kalol</span><span class="chip">Gondal</span>
+          <span class="chip">Jetpur</span>
+        </div>
+      </div>
+
+      <h2>Next actions for top Google visibility</h2>
+      <div class="card">
+        <ol class="next">
+          <li>Add exact office street address on website + Google Business Profile.</li>
+          <li>Deploy live → Search Console → submit https://nextravelholidays.com/sitemap.xml</li>
+          <li>Verify website URL on Google Business Profile (Travel Agency / Tour Operator).</li>
+          <li>Collect Google reviews mentioning city names (Ahmedabad, Surat, Vadodara…).</li>
+          <li>Optional: add TouristTrip / Product schema on package pages.</li>
+        </ol>
+      </div>
+
+      <footer>
+        © 2026 NexTravel Holidays · Founder &amp; CEO Pulkit Karangiya · Colour print-ready SEO/GEO report
+      </footer>
+    </div>
+  </body>
+</html>

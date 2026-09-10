@@ -1,0 +1,36 @@
+{
+  "name": "nextravel",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "NODE_ENV=production node server.js",
+    "lint": "eslint",
+    "db:seed": "npx tsx scripts/seed.ts",
+    "db:setup": "npx tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "lucide-react": "^1.33.0",
+    "mysql2": "^3.24.2",
+    "next": "16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-easy-crop": "^6.2.3",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.12",
+    "typescript": "^5"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "16.3.1"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
