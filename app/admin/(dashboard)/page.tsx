@@ -1,12 +1,30 @@
 import type { Metadata } from "next";
-import AppImage from "@/components/AppImage";
 import Link from "next/link";
-import { Eye, EyeOff, Globe2, MapPin, Package, Pencil, Plus, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  CircleDollarSign,
+  Globe2,
+  HandCoins,
+  Images,
+  MessageSquareQuote,
+  Package,
+  ReceiptText,
+  UserPlus,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
-import DeletePackageButton from "@/components/admin/DeletePackageButton";
-import ToggleActiveButton from "@/components/admin/ToggleActiveButton";
-import Button from "@/components/Button";
-import { listPackageSummaries, pingMysql } from "@/lib/packages-db";
+import DbErrorNotice, { dbErrorMessage } from "@/components/admin/DbErrorNotice";
+import PaymentStatusBadge from "@/components/admin/PaymentStatusBadge";
+import { listCustomers } from "@/lib/customers-db";
+import { listGalleryItems } from "@/lib/gallery-db";
+import { formatINR, formatInvoiceDate } from "@/lib/invoice";
+import { listInvoices } from "@/lib/invoices-db";
+import { listPackageSummaries } from "@/lib/packages-db";
+import { listReviews } from "@/lib/reviews-db";
+import { listTourPackages } from "@/lib/tour-packages-db";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -14,185 +32,318 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminPackagesPage() {
-  let packages: Awaited<ReturnType<typeof listPackageSummaries>> = [];
+const TIME_ZONE = "Asia/Kolkata";
+
+function loadDashboard() {
+  return Promise.all([
+    listInvoices(),
+    listCustomers(),
+    listTourPackages(),
+    listPackageSummaries(),
+    listGalleryItems({ includeInactive: true }),
+    listReviews({ includeInactive: true }),
+  ]);
+}
+
+function greeting(now: Date) {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-IN", { hour: "numeric", hourCycle: "h23", timeZone: TIME_ZONE }).format(now),
+  );
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+const cardClass = "rounded-[20px] border border-white/[0.07] bg-[#111111] sm:rounded-[22px]";
+
+function StatCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  valueClass,
+  href,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  icon: LucideIcon;
+  valueClass?: string;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(cardClass, "group block p-4 transition hover:border-white/15 sm:p-5")}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[11px] font-semibold tracking-[0.14em] text-[#9A9A9A] uppercase">{label}</p>
+        <span className="flex size-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#9A9A9A] transition group-hover:text-[#E20E17]">
+          <Icon className="size-4" />
+        </span>
+      </div>
+      <p
+        className={cn(
+          "mt-4 truncate text-[24px] leading-none font-extrabold tracking-tight sm:text-[30px]",
+          valueClass ?? "text-[#EDEDED]",
+        )}
+      >
+        {value}
+      </p>
+      {hint ? <p className="mt-2 truncate text-xs text-[#7A7A7A]">{hint}</p> : null}
+    </Link>
+  );
+}
+
+function SectionHeader({ title, href, linkLabel }: { title: string; href: string; linkLabel: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-3.5 sm:px-5">
+      <h2 className="text-[12px] font-bold tracking-[0.16em] text-[#EDEDED] uppercase">{title}</h2>
+      <Link
+        href={href}
+        className="inline-flex items-center gap-1 text-xs font-semibold text-[#9A9A9A] transition hover:text-[#E20E17]"
+      >
+        {linkLabel}
+        <ArrowRight className="size-3.5" />
+      </Link>
+    </div>
+  );
+}
+
+export default async function AdminDashboardPage() {
+  let data: Awaited<ReturnType<typeof loadDashboard>> | null = null;
   let dbError = "";
 
   try {
-    await pingMysql();
-    packages = await listPackageSummaries();
+    data = await loadDashboard();
   } catch (error) {
-    dbError =
-      error instanceof Error
-        ? error.message
-        : "Could not connect to MySQL. Start the database and try again.";
+    dbError = dbErrorMessage(error);
   }
 
-  const total = packages.length;
-  const activeCount = packages.filter((item) => item.active).length;
-  const inactiveCount = total - activeCount;
-  const featuredCount = packages.filter((item) => item.featured).length;
+  const now = new Date();
+  const todayLabel = new Intl.DateTimeFormat("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: TIME_ZONE,
+  }).format(now);
 
-  const stats = [
-    { label: "Total packages", value: total, icon: Globe2, valueClass: "text-[#EDEDED]" },
-    { label: "Active", value: activeCount, icon: Sparkles, valueClass: "text-[#E20E17]" },
-    { label: "Inactive", value: inactiveCount, icon: EyeOff, valueClass: "text-[#9A9A9A]" },
-    { label: "Featured", value: featuredCount, icon: Eye, valueClass: "text-[#EDEDED]" },
+  if (!data) {
+    return (
+      <AdminShell title="Dashboard" description={todayLabel} activeNav="dashboard">
+        <DbErrorNotice message={dbError} />
+      </AdminShell>
+    );
+  }
+
+  const [invoices, customers, tourPackages, packages, gallery, reviews] = data;
+
+  const monthPrefix = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(now).slice(0, 7);
+  const thisMonth = invoices.filter((item) => item.invoiceDate.startsWith(monthPrefix));
+  const monthBilled = thisMonth.reduce((sum, item) => sum + item.totalAmount, 0);
+
+  const billed = invoices.reduce((sum, item) => sum + item.totalAmount, 0);
+  const received = invoices.reduce((sum, item) => sum + item.amountReceived, 0);
+  const outstanding = invoices.reduce((sum, item) => sum + Math.max(0, item.outstanding), 0);
+
+  const pending = invoices
+    .filter((item) => item.status !== "paid" && item.outstanding > 0)
+    .sort((a, b) => b.outstanding - a.outstanding);
+  const recent = invoices.slice(0, 5);
+
+  const moneyStats = [
+    {
+      label: "Billed (₹)",
+      value: formatINR(billed),
+      hint: `${invoices.length} invoice${invoices.length === 1 ? "" : "s"} in total`,
+      icon: CircleDollarSign,
+      href: "/admin/invoices",
+    },
+    {
+      label: "Received (₹)",
+      value: formatINR(received),
+      hint: billed > 0 ? `${Math.round((received / billed) * 100)}% collected` : "No payments yet",
+      icon: HandCoins,
+      valueClass: "text-emerald-400",
+      href: "/admin/invoices",
+    },
+    {
+      label: "Outstanding (₹)",
+      value: formatINR(outstanding),
+      hint: `${pending.length} invoice${pending.length === 1 ? "" : "s"} pending`,
+      icon: Wallet,
+      valueClass: "text-[#E20E17]",
+      href: "/admin/invoices",
+    },
+    {
+      label: "This month (₹)",
+      value: formatINR(monthBilled),
+      hint: `${thisMonth.length} invoice${thisMonth.length === 1 ? "" : "s"} this month`,
+      icon: CalendarDays,
+      href: "/admin/invoices",
+    },
+  ];
+
+  const activePackages = packages.filter((item) => item.active).length;
+  const activeGallery = gallery.filter((item) => item.active).length;
+  const activeReviews = reviews.filter((item) => item.active).length;
+
+  const contentStats = [
+    { label: "Customers", value: customers.length, hint: "Saved clients", icon: Users, href: "/admin/customers" },
+    {
+      label: "Tour packages",
+      value: tourPackages.length,
+      hint: "For invoices",
+      icon: Package,
+      href: "/admin/tour-packages",
+    },
+    {
+      label: "Website packages",
+      value: packages.length,
+      hint: `${activePackages} live on site`,
+      icon: Globe2,
+      href: "/admin/packages",
+    },
+    {
+      label: "Gallery",
+      value: gallery.length,
+      hint: `${activeGallery} visible`,
+      icon: Images,
+      href: "/admin/gallery",
+    },
+    {
+      label: "Reviews",
+      value: reviews.length,
+      hint: `${activeReviews} visible`,
+      icon: MessageSquareQuote,
+      href: "/admin/reviews",
+    },
+  ];
+
+  const quickActions = [
+    { label: "New invoice", hint: "Create and send a bill", href: "/admin/invoices/new", icon: ReceiptText },
+    { label: "New customer", hint: "Save client details", href: "/admin/customers/new", icon: UserPlus },
   ];
 
   return (
     <AdminShell
-      title="Tour packages"
-      description="Manage destination cards and package pages shown on the website."
-      actions={
-        <Button
-          href="/admin/packages/new"
-          className="w-full shrink-0 shadow-[0_10px_28px_rgba(226,14,23,0.35)] sm:w-auto"
-        >
-          <Plus className="size-4" />
-          New package
-        </Button>
-      }
+      title="Dashboard"
+      description={`${greeting(now)}! Here's how NexTravel is doing today — ${todayLabel}.`}
+      activeNav="dashboard"
     >
-      {dbError ? (
-        <div className="rounded-[24px] border border-[#E20E17]/40 bg-[#E20E17]/10 p-6 text-sm leading-7 text-[#EDEDED]">
-          <p className="font-semibold">MySQL is not connected.</p>
-          <p className="mt-2 text-muted">{dbError}</p>
-          <p className="mt-3 text-muted">
-            Start MySQL locally, import <code className="text-[#EDEDED]">database/nextravel.sql</code>, then run{" "}
-            <code className="text-[#EDEDED]">npm run db:seed</code>.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-4">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={stat.label}
-                  className="rounded-[20px] border border-white/[0.07] bg-[#111111] p-4 sm:rounded-[22px] sm:p-5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[11px] font-semibold tracking-[0.14em] text-[#9A9A9A] uppercase">
-                      {stat.label}
-                    </p>
-                    <span className="flex size-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#9A9A9A]">
-                      <Icon className="size-4" />
-                    </span>
-                  </div>
-                  <p className={cn("mt-4 text-[32px] leading-none font-extrabold tracking-tight", stat.valueClass)}>
-                    {stat.value}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-4">
+        {moneyStats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
+      </div>
 
-          {packages.length === 0 ? (
-            <div className="mt-7 rounded-[24px] border border-dashed border-white/15 bg-[#111111] p-10 text-center sm:mt-8 sm:p-14">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-[#E20E17]/15 text-[#E20E17]">
-                <Package className="size-6" />
-              </div>
-              <p className="mt-4 text-lg font-bold text-[#EDEDED]">No packages yet</p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-                Import sample packages or create a new one to start building your catalog.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <Button href="/admin/packages/new">
-                  <Plus className="size-4" />
-                  New package
-                </Button>
-              </div>
+      <section className="mt-6">
+        <h2 className="mb-3 text-[12px] font-bold tracking-[0.16em] text-[#EDEDED] uppercase">Quick actions</h2>
+        <div className="grid grid-cols-2 gap-3 xl:gap-4">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.href}
+                href={action.href}
+                className={cn(
+                  cardClass,
+                  "group flex min-h-full flex-col items-start gap-3 p-3.5 transition hover:border-[#E20E17]/45 sm:flex-row sm:items-center sm:p-4",
+                )}
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#E20E17]/12 text-[#E20E17]">
+                  <Icon className="size-[18px]" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm leading-snug font-semibold text-[#EDEDED] sm:text-[15px]">
+                    {action.label}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-snug text-[#7A7A7A]">{action.hint}</span>
+                </span>
+                <ArrowRight className="hidden size-4 shrink-0 text-[#5F5F5F] transition group-hover:translate-x-0.5 group-hover:text-[#E20E17] sm:block" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-5 xl:gap-5">
+        <section className={cn(cardClass, "overflow-hidden xl:col-span-3")}>
+          <SectionHeader title="Recent invoices" href="/admin/invoices" linkLabel="View all" />
+          {recent.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-[#9A9A9A]">
+              No invoices yet.{" "}
+              <Link href="/admin/invoices/new" className="font-semibold text-[#E20E17] hover:underline">
+                Create your first invoice
+              </Link>
             </div>
           ) : (
-            <section className="mt-7 sm:mt-8">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="text-[12px] font-bold tracking-[0.16em] text-[#EDEDED] uppercase">
-                  All packages
-                </h2>
-                <p className="text-xs font-medium text-[#9A9A9A]">{total} total</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-5">
-                {packages.map((item) => (
-                  <article
-                    key={item.id}
-                    className={cn(
-                      "group flex flex-col overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#111111] transition duration-300 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-[0_18px_40px_rgba(0,0,0,0.35)]",
-                      !item.active && "opacity-65",
-                    )}
+            <ul className="divide-y divide-white/[0.06]">
+              {recent.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={`/admin/invoices/${item.id}`}
+                    className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] sm:px-5"
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden bg-[#0A0A0A]">
-                      <AppImage
-                        src={item.image}
-                        alt=""
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className="object-cover transition duration-700 group-hover:scale-[1.04]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <ToggleActiveButton id={item.id} active={item.active} name={item.name} />
-                        {item.featured ? (
-                          <span className="rounded-full bg-white/18 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase backdrop-blur-md">
-                            Featured
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <span className="absolute right-3 bottom-3 rounded-lg bg-black/65 px-2.5 py-1 text-sm font-bold text-white backdrop-blur-sm">
-                        {item.originalPrice ? (
-                          <span className="mr-1.5 text-[11px] font-medium text-[#B0B0B0] line-through">
-                            {item.originalPrice}
-                          </span>
-                        ) : null}
-                        {item.price}
-                      </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-[#EDEDED]">{item.clientName}</p>
+                      <p className="mt-0.5 truncate text-xs text-[#7A7A7A]">
+                        {item.invoiceNo} · {formatInvoiceDate(item.invoiceDate)}
+                        {item.packageName ? ` · ${item.packageName}` : ""}
+                      </p>
                     </div>
-
-                    <div className="flex flex-1 flex-col px-4 pt-3.5 pb-4">
-                      <h3 className="line-clamp-1 text-[15px] font-bold tracking-tight text-[#EDEDED]">
-                        {item.name}
-                      </h3>
-                      <p className="mt-0.5 text-[12px] text-[#7A7A7A]">/{item.slug}</p>
-
-                      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#9A9A9A]">
-                        <span className="inline-flex min-w-0 items-center gap-1">
-                          <MapPin className="size-3 shrink-0 text-[#E20E17]" />
-                          <span className="truncate">{item.location}</span>
-                        </span>
-                        <span className="shrink-0">{item.duration}</span>
-                      </div>
-
-                      <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-white/[0.07] pt-3.5 mt-4">
-                        <Link
-                          href={`/admin/packages/${item.id}/edit`}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs font-semibold text-[#EDEDED] transition hover:border-[#E20E17]/45"
-                        >
-                          <Pencil className="size-3.5" />
-                          Edit
-                        </Link>
-                        <Link
-                          href={`/destinations/${item.slug}`}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs font-semibold text-[#9A9A9A] transition hover:text-[#EDEDED]"
-                        >
-                          <Eye className="size-3.5" />
-                          View
-                        </Link>
-                        <div className="ml-auto">
-                          <DeletePackageButton id={item.id} name={item.name} />
-                        </div>
-                      </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <p className="text-sm font-bold text-[#EDEDED] tabular-nums">₹{formatINR(item.totalAmount)}</p>
+                      <PaymentStatusBadge status={item.status} className="px-2 py-0.5 text-[10px]" />
                     </div>
-                  </article>
-                ))}
-              </div>
-            </section>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
-        </>
-      )}
+        </section>
+
+        <section className={cn(cardClass, "overflow-hidden xl:col-span-2")}>
+          <SectionHeader title="Pending payments" href="/admin/invoices" linkLabel="All invoices" />
+          {pending.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-[#9A9A9A]">
+              All caught up — no pending payments.
+            </div>
+          ) : (
+            <ul className="divide-y divide-white/[0.06]">
+              {pending.slice(0, 5).map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={`/admin/invoices/${item.id}`}
+                    className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] sm:px-5"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-[#EDEDED]">{item.clientName}</p>
+                      <p className="mt-0.5 truncate text-xs text-[#7A7A7A]">{item.invoiceNo}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-bold text-[#FF5A61] tabular-nums">₹{formatINR(item.outstanding)}</p>
+                      <p className="mt-0.5 text-[11px] text-[#7A7A7A] tabular-nums">
+                        of ₹{formatINR(item.totalAmount)}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <section className="mt-6">
+        <h2 className="mb-3 text-[12px] font-bold tracking-[0.16em] text-[#EDEDED] uppercase">Business & website</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5 xl:gap-4">
+          {contentStats.map((stat) => (
+            <StatCard key={stat.label} {...stat} value={String(stat.value)} />
+          ))}
+        </div>
+      </section>
     </AdminShell>
   );
 }

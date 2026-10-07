@@ -11,6 +11,10 @@ CREATE DATABASE IF NOT EXISTS `nextravel`
 
 USE `nextravel`;
 
+DROP TABLE IF EXISTS `invoice_payments`;
+DROP TABLE IF EXISTS `invoices`;
+DROP TABLE IF EXISTS `customers`;
+DROP TABLE IF EXISTS `tour_packages`;
 DROP TABLE IF EXISTS `package_items`;
 DROP TABLE IF EXISTS `package_itinerary`;
 DROP TABLE IF EXISTS `package_highlights`;
@@ -148,6 +152,77 @@ CREATE TABLE `legal_pages` (
   `sections_json` JSON NOT NULL,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `tour_packages` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `duration` VARCHAR(128) NOT NULL,
+  `stay_plan` JSON NOT NULL,
+  `includes` JSON NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `customers` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `mobile` VARCHAR(32) NOT NULL,
+  `email` VARCHAR(255) NULL,
+  `city` VARCHAR(128) NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_customers_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `invoices` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `invoice_no` VARCHAR(32) NOT NULL,
+  `invoice_date` DATE NOT NULL,
+  `customer_id` INT UNSIGNED NULL,
+  `tour_package_id` INT UNSIGNED NULL,
+  `client_name` VARCHAR(255) NOT NULL,
+  `client_mobile` VARCHAR(32) NOT NULL DEFAULT '',
+  `client_email` VARCHAR(255) NOT NULL DEFAULT '',
+  `client_city` VARCHAR(128) NOT NULL DEFAULT '',
+  `package_name` VARCHAR(255) NOT NULL,
+  `duration` VARCHAR(128) NOT NULL DEFAULT '',
+  `destinations` VARCHAR(500) NOT NULL DEFAULT '',
+  `travellers` VARCHAR(255) NOT NULL DEFAULT '',
+  `rooms` VARCHAR(128) NOT NULL DEFAULT '',
+  `hotel` VARCHAR(128) NOT NULL DEFAULT '',
+  `stay_plan` JSON NOT NULL,
+  `includes` JSON NOT NULL,
+  `charges` JSON NOT NULL,
+  `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
+  `advance_received` DECIMAL(12,2) NOT NULL DEFAULT 0,
+  `payment_details` JSON NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_invoices_no` (`invoice_no`),
+  KEY `idx_invoices_customer` (`customer_id`),
+  KEY `idx_invoices_package` (`tour_package_id`),
+  CONSTRAINT `fk_invoices_customer`
+    FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_invoices_tour_package`
+    FOREIGN KEY (`tour_package_id`) REFERENCES `tour_packages` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `invoice_payments` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `invoice_id` INT UNSIGNED NOT NULL,
+  `amount` DECIMAL(12,2) NOT NULL,
+  `paid_on` DATE NOT NULL,
+  `method` VARCHAR(40) NOT NULL DEFAULT '',
+  `note` VARCHAR(255) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_invoice_payments_invoice` (`invoice_id`),
+  CONSTRAINT `fk_invoice_payments_invoice`
+    FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `app_meta` (`meta_key`, `meta_value`) VALUES

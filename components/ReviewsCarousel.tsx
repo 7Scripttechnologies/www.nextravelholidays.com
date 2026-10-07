@@ -28,7 +28,7 @@ function Stars({ rating }: { rating: number }) {
 
 function ReviewCardFace({ review }: { review: Review }) {
   return (
-    <article className="flex h-full min-h-[280px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#141414] p-5 sm:min-h-[300px] sm:rounded-[28px] sm:p-6">
+    <article className="flex h-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#141414] p-5 sm:rounded-[28px] sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <span className="text-3xl leading-none font-serif text-[#E20E17]" aria-hidden="true">
           “
@@ -36,11 +36,15 @@ function ReviewCardFace({ review }: { review: Review }) {
         <Stars rating={review.rating} />
       </div>
 
-      <div className="mt-4 flex-1">
-        {review.title ? (
-          <p className="text-[15px] font-bold tracking-tight text-[#EDEDED]">{review.title}</p>
-        ) : null}
-        <p className={`text-sm leading-7 text-[#B0B0B0] ${review.title ? "mt-2" : ""}`}>
+      {/* Fixed line counts give every card the same height, so flipping reviews never shifts the page. */}
+      <div className="mt-4">
+        <p
+          className="h-6 truncate text-[15px] leading-6 font-bold tracking-tight text-[#EDEDED]"
+          title={review.title || undefined}
+        >
+          {review.title}
+        </p>
+        <p className="mt-2 line-clamp-4 h-28 text-sm leading-7 text-[#B0B0B0]" title={review.quote}>
           {review.quote}
         </p>
       </div>
@@ -51,11 +55,11 @@ function ReviewCardFace({ review }: { review: Review }) {
           alt=""
           width={44}
           height={44}
-          className="size-11 rounded-full object-cover ring-2 ring-[#E20E17]/40"
+          className="size-11 shrink-0 rounded-full object-cover ring-2 ring-[#E20E17]/40"
         />
-        <div>
-          <p className="text-sm font-bold text-[#EDEDED]">{review.name}</p>
-          <p className="mt-0.5 text-xs text-muted">{review.type}</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-[#EDEDED]">{review.name}</p>
+          <p className="mt-0.5 truncate text-xs text-muted">{review.type}</p>
         </div>
       </div>
     </article>

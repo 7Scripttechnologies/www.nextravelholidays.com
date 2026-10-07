@@ -21,6 +21,7 @@ export function getPool() {
       ...config,
       waitForConnections: true,
       connectionLimit: 10,
+      connectTimeout: 5000,
       charset: "utf8mb4",
       dateStrings: true,
     });

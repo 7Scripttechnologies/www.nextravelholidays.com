@@ -42,7 +42,7 @@ function StatValue({ value }: { value: string }) {
 }
 
 const stats = [
-  { value: "15+", label: "Years of Experience" },
+  { value: "5+", label: "Years of Experience" },
   { value: "98%", label: "Satisfaction Rate" },
   { value: "4K+", label: "Happy Travelers" },
   { value: "1000+", label: "Travel Destinations" },

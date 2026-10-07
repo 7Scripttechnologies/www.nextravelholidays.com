@@ -47,5 +47,8 @@ next-env.d.ts
 /data/uploads/*
 !/data/uploads/.gitkeep
 
+# invoice PDFs shared by WhatsApp link
+/data/invoice-pdfs/
+
 # local image-optimise admin state
 /data/image-optimise-done.json

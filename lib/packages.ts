@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { getStaticDestinations, type Destination, type DestinationCategory } from "@/data/destinations";
+import { dbErrorSummary } from "@/lib/json-column";
 import { listPackages, getPackageBySlug as getPackageBySlugFromDb, seedIfEmpty } from "@/lib/packages-db";
 
 let warned = false;
@@ -17,7 +18,7 @@ export async function getAllDestinations(): Promise<Destination[]> {
     return packages.filter((destination) => destination.active !== false);
   } catch (error) {
     if (!warned) {
-      console.error("[packages] MySQL is unavailable, using static destinations.", error);
+      console.warn("[packages] MySQL is unavailable, using static destinations:", dbErrorSummary(error));
       warned = true;
     }
     return getStaticDestinations().filter((destination) => destination.active !== false);
@@ -34,7 +35,7 @@ export async function getDestination(slug: string): Promise<Destination | undefi
     return record;
   } catch (error) {
     if (!warned) {
-      console.error("[packages] MySQL is unavailable, using static destinations.", error);
+      console.warn("[packages] MySQL is unavailable, using static destinations:", dbErrorSummary(error));
       warned = true;
     }
     const destination = getStaticDestinations().find((item) => item.slug === slug);

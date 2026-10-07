@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { getGalleryItems as getStaticGalleryItems, type GalleryItem } from "@/data/gallery";
 import { listGalleryItems, seedGalleryIfEmpty, toPublicItem } from "@/lib/gallery-db";
+import { dbErrorSummary } from "@/lib/json-column";
 
 let warned = false;
 
@@ -13,7 +14,7 @@ export async function getGalleryItems(): Promise<GalleryItem[]> {
     return items.map(toPublicItem);
   } catch (error) {
     if (!warned) {
-      console.error("[gallery] MySQL is unavailable, using static gallery.", error);
+      console.warn("[gallery] MySQL is unavailable, using static gallery:", dbErrorSummary(error));
       warned = true;
     }
     return getStaticGalleryItems();

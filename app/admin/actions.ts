@@ -28,6 +28,7 @@ import {
   getPackageById,
   importSamplePackages,
   insertPackage,
+  isDbConnectionError,
   setPackageActive,
   slugExists,
   updatePackage,
@@ -56,6 +57,7 @@ function revalidatePackages(slug?: string) {
   revalidatePath("/", "layout");
   revalidatePath("/destinations");
   revalidatePath("/admin");
+  revalidatePath("/admin/packages");
   if (slug) revalidatePath(`/destinations/${slug}`);
 }
 
@@ -115,7 +117,17 @@ async function removeUnusedUploads(srcs: Array<string | null | undefined>) {
 export async function loginAdmin(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const result = await validateAdminCredentials(email, password);
+  let result: Awaited<ReturnType<typeof validateAdminCredentials>>;
+  try {
+    result = await validateAdminCredentials(email, password);
+  } catch (error) {
+    console.error("[admin-login] Could not check admin credentials:", error);
+    return {
+      error: isDbConnectionError(error)
+        ? "Can't reach the database server right now. Check that MySQL is online and allows connections from this computer, then try again."
+        : "Login failed because the database returned an error. Please try again.",
+    };
+  }
   if (!result.ok) return { error: result.error };
 
   await applyAdminSessionCookie();
@@ -168,7 +180,7 @@ export async function createPackageAction(_prev: ActionState, formData: FormData
   }
 
   revalidatePackages(parsed.data.slug);
-  redirect("/admin");
+  redirect("/admin/packages");
 }
 
 export async function updatePackageAction(
@@ -193,7 +205,7 @@ export async function updatePackageAction(
   }
 
   revalidatePackages(parsed.data.slug);
-  redirect("/admin");
+  redirect("/admin/packages");
 }
 
 export async function deletePackageAction(id: number) {

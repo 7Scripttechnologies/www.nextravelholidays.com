@@ -484,7 +484,7 @@ export default function PackageForm({ mode, initial, action }: PackageFormProps)
         <Button type="submit" disabled={pending}>
           {pending ? "Saving..." : mode === "create" ? "Create package" : "Save changes"}
         </Button>
-        <Button href="/admin" variant="secondary">
+        <Button href="/admin/packages" variant="secondary">
           Cancel
         </Button>
       </div>

@@ -9,7 +9,7 @@ import { getSiteImages } from "@/lib/site-images";
 const stats = [
   { value: "1,000+", label: "outdoor destinations" },
   { value: "98%", label: "customer satisfaction" },
-  { value: "15+", label: "Years Of Experience" },
+  { value: "5+", label: "Years Of Experience" },
 ];
 
 export default async function ExperienceSection() {
@@ -64,7 +64,7 @@ export default async function ExperienceSection() {
               strokeWidth={2.25}
               aria-hidden="true"
             />
-            <span className="text-[12px] font-bold text-white sm:text-[13px]">best fun</span>
+            <span className="text-[12px] font-bold text-white sm:text-[13px]">Best Fun</span>
           </div>
 
           <div className="animate-float-delayed absolute right-0 bottom-[14%] z-10 inline-flex items-center gap-1.5 rounded-full border border-white bg-black px-3 py-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.4)] sm:px-4 sm:py-2">

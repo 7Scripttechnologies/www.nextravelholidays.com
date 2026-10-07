@@ -2,6 +2,7 @@ import { cache } from "react";
 import { connection } from "next/server";
 import { privacyPage } from "@/data/privacy";
 import { termsPage, type LegalPage } from "@/data/terms";
+import { dbErrorSummary } from "@/lib/json-column";
 import {
   defaultLegalPage,
   getLegalPageBySlug,
@@ -18,7 +19,7 @@ async function loadLegalPage(slug: LegalSlug, fallback: LegalPage): Promise<Lega
     return (await getLegalPageBySlug(slug)) ?? fallback;
   } catch (error) {
     if (!warned) {
-      console.error("[legal] MySQL is unavailable, using static legal pages.", error);
+      console.warn("[legal] MySQL is unavailable, using static legal pages:", dbErrorSummary(error));
       warned = true;
     }
     return fallback;

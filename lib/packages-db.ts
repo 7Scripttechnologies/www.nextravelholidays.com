@@ -138,13 +138,41 @@ function toPackage(
   };
 }
 
+const CONNECTION_ERROR_CODES = new Set([
+  "ETIMEDOUT",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ENOTFOUND",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "PROTOCOL_CONNECTION_LOST",
+]);
+const CONNECTION_RETRY_MS = 15_000;
+let lastConnectionFailure: { at: number; error: unknown } | null = null;
+
+export function isDbConnectionError(error: unknown) {
+  const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  return CONNECTION_ERROR_CODES.has(code);
+}
+
 export async function ensureSchema() {
   if (schemaReady) return;
 
-  const pool = getPool();
-  for (const statement of schemaStatements) {
-    await pool.query(statement);
+  // While MySQL is unreachable, fail fast instead of making every query wait for its own timeout.
+  if (lastConnectionFailure && Date.now() - lastConnectionFailure.at < CONNECTION_RETRY_MS) {
+    throw lastConnectionFailure.error;
   }
+
+  const pool = getPool();
+  try {
+    for (const statement of schemaStatements) {
+      await pool.query(statement);
+    }
+  } catch (error) {
+    if (isDbConnectionError(error)) lastConnectionFailure = { at: Date.now(), error };
+    throw error;
+  }
+  lastConnectionFailure = null;
 
   // Existing databases created before `active` existed
   try {

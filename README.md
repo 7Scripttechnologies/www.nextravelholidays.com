@@ -58,7 +58,8 @@ The admin area is a **cookie-authenticated CMS**. From `/admin` you manage packa
 
 | Area | Route | Notes |
 | --- | --- | --- |
-| Packages | `/admin` | CRUD, featured, green **ON/OFF** active toggle, offer + original price |
+| Dashboard | `/admin` | Default page after login: billing totals, recent invoices, pending payments, quick actions |
+| Packages | `/admin/packages` | CRUD, featured, green **ON/OFF** active toggle, offer + original price |
 | Gallery | `/admin/gallery` | Public `/gallery` photos |
 | Reviews | `/admin/reviews` | Carousel reviews (avatar, quote, rating, type) |
 | Legal | `/admin/legal` | Edit Terms & Privacy |
@@ -187,6 +188,12 @@ npm run dev
 | `ADMIN_PASSWORD` | Fallback | — | Visible admin fallback |
 | `AUTH_SECRET` | Yes | — | HMAC secret for admin cookie |
 | `NEXT_PUBLIC_SITE_URL` | SEO | — | Canonical / Open Graph base URL |
+| `SMTP_HOST` | Invoice email | — | Outgoing mail server |
+| `SMTP_PORT` | Invoice email | `465` | `465` for SSL, `587` for STARTTLS |
+| `SMTP_SECURE` | Invoice email | `true` on 465 | `true` = SSL from the start |
+| `SMTP_USER` | Invoice email | — | Mailbox login; also the From address |
+| `SMTP_PASS` | Invoice email | — | Mailbox password (wrap in single quotes) |
+| `SMTP_FROM_NAME` | Invoice email | `NexTravel Holidays` | Sender name shown to clients |
 
 Prefer DB credentials (Settings + seeded defaults) over env for day-to-day login. Env remains a fallback.
 

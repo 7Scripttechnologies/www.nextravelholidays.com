@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import ContentProtection from "@/components/ContentProtection";
 import JsonLd from "@/components/JsonLd";
 import { SiteContactProvider } from "@/components/SiteContactProvider";
 import { getSiteContact } from "@/lib/site-contact-get";
@@ -87,6 +88,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col overflow-x-hidden bg-black font-sans text-foreground">
         <SiteContactProvider value={contact}>
           <JsonLd contact={contact} />
+          <ContentProtection />
           {children}
         </SiteContactProvider>
       </body>

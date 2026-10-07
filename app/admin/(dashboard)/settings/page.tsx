@@ -4,7 +4,7 @@ import AdminShell from "@/components/admin/AdminShell";
 import { getAdminCredentials } from "@/lib/admin-credentials";
 
 export const metadata: Metadata = {
-  title: "Settings — Admin",
+  title: "Admin login — Settings",
   robots: { index: false, follow: false },
 };
 
@@ -13,8 +13,8 @@ export default async function AdminSettingsPage() {
 
   return (
     <AdminShell
-      title="Settings"
-      description="Change the visible admin login email and password. The system backup login stays hidden."
+      title="Admin login"
+      description="Change the email and password used to sign in to this admin panel."
       activeNav="settings"
     >
       <AdminSettingsForm email={credentials?.email ?? ""} />
