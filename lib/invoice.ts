@@ -14,6 +14,7 @@ export type PaymentDetails = {
   contactPhone: string;
   contactEmail: string;
   website: string;
+  address: string;
 };
 
 export type InvoiceData = {
@@ -69,10 +70,14 @@ export function paymentStatus(total: number, received: number): PaymentStatus {
 
 export const DEFAULT_INVOICE_PREFIX = "#NH";
 
+export const DEFAULT_OFFICE_ADDRESS =
+  "Office No. 227, Madhuram, star platinum complex, Vanthali Rd, Madhuram, Moti Palace Twp, Junagadh, Gujarat 362015";
+
 export const paymentDetailFields: Array<{
   key: keyof PaymentDetails;
   label: string;
   group: "payment" | "contact";
+  wide?: boolean;
 }> = [
   { key: "bankName", label: "Bank name", group: "payment" },
   { key: "accountNo", label: "Account no.", group: "payment" },
@@ -83,6 +88,7 @@ export const paymentDetailFields: Array<{
   { key: "contactPhone", label: "Contact no.", group: "contact" },
   { key: "contactEmail", label: "Email", group: "contact" },
   { key: "website", label: "Website", group: "contact" },
+  { key: "address", label: "Address", group: "contact", wide: true },
 ];
 
 export function defaultPaymentDetails(): PaymentDetails {
@@ -96,6 +102,7 @@ export function defaultPaymentDetails(): PaymentDetails {
     contactPhone: "+91 88664 86477",
     contactEmail: siteConfig.email,
     website: siteConfig.url.replace(/^https?:\/\//, "").replace(/^(?!www\.)/, "www."),
+    address: DEFAULT_OFFICE_ADDRESS,
   };
 }
 

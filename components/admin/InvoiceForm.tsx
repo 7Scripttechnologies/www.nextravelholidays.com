@@ -34,7 +34,6 @@ import {
   type ChargeLine,
   type InvoiceData,
 } from "@/lib/invoice";
-import type { TourPackageRecord } from "@/lib/tour-packages-db";
 import { cn } from "@/lib/utils";
 
 export type InvoiceFormInitial = InvoiceData & {
@@ -43,7 +42,6 @@ export type InvoiceFormInitial = InvoiceData & {
 };
 
 export type CustomerOption = Pick<CustomerRecord, "id" | "name" | "mobile" | "email" | "city">;
-export type PackageOption = Pick<TourPackageRecord, "id" | "name" | "duration" | "stayPlan" | "includes">;
 
 type ChargeDraft = { key: string; description: string; qty: string; rate: string };
 type ClientFields = { name: string; mobile: string; email: string; city: string };
@@ -52,7 +50,6 @@ interface InvoiceFormProps {
   mode: "create" | "edit";
   initial: InvoiceFormInitial;
   customers: CustomerOption[];
-  packages: PackageOption[];
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   cancelHref: string;
   /** Invoice-number prefix from Settings, used to preview numbers for other months. */
@@ -122,7 +119,6 @@ export default function InvoiceForm({
   mode,
   initial,
   customers,
-  packages,
   action,
   cancelHref,
   invoicePrefix,
@@ -140,7 +136,6 @@ export default function InvoiceForm({
   });
   const [saveCustomer, setSaveCustomer] = useState(false);
 
-  const [tourPackageId, setTourPackageId] = useState<number | null>(initial.tourPackageId);
   const [packageName, setPackageName] = useState(initial.packageName);
   const [stayRows, setStayRows] = useState(() => toStayDrafts(initial.stayPlan));
   const [includeRows, setIncludeRows] = useState(() => toIncludeDrafts(initial.includes));
@@ -200,7 +195,7 @@ export default function InvoiceForm({
   const payload = JSON.stringify({
     ...data,
     customerId,
-    tourPackageId,
+    tourPackageId: initial.tourPackageId,
     saveCustomer: customerId == null && saveCustomer,
   });
 
@@ -220,21 +215,6 @@ export default function InvoiceForm({
     setCustomerId(customer.id);
     setSaveCustomer(false);
     setClient({ name: customer.name, mobile: customer.mobile, email: customer.email, city: customer.city });
-  };
-
-  const selectPackage = (value: string) => {
-    const id = Number(value);
-    const pkg = packages.find((item) => item.id === id);
-    if (!pkg) {
-      setTourPackageId(null);
-      return;
-    }
-    setTourPackageId(pkg.id);
-    setPackageName(pkg.name);
-    setStayRows(toStayDrafts(pkg.stayPlan));
-    setIncludeRows(toIncludeDrafts(pkg.includes));
-    setDurationOverride(pkg.duration !== durationFromStayPlan(pkg.stayPlan) ? pkg.duration : null);
-    setDestinationsOverride(null);
   };
 
   const updateClient = (patch: Partial<ClientFields>) => setClient((current) => ({ ...current, ...patch }));
@@ -377,29 +357,9 @@ export default function InvoiceForm({
 
         <FormSection
           title="Package"
-          description="Pick a tour package to fill in the stay plan and inclusions. Everything stays editable."
-          aside={
-            <Link href="/admin/tour-packages/new" className="text-xs font-semibold text-[#E20E17] hover:underline">
-              + Build package
-            </Link>
-          }
+          description="Type the package name. Duration fills in from the stay plan below."
         >
-          <Field label="Tour package">
-            <select
-              value={tourPackageId ?? ""}
-              onChange={(event) => selectPackage(event.target.value)}
-              className={fieldClass}
-            >
-              <option value="">— Custom (fill details below) —</option>
-              {packages.map((pkg) => (
-                <option key={pkg.id} value={pkg.id}>
-                  {pkg.name} · {pkg.duration}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_200px]">
+          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_200px]">
             <Field label="Package name">
               <input
                 value={packageName}

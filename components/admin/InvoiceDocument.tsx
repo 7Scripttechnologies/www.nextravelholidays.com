@@ -369,6 +369,7 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
               <InfoLine label="Contact No" value={payment.contactPhone} />
               <InfoLine label="Email" value={payment.contactEmail} />
               <InfoLine label="Website" value={payment.website} />
+              <InfoLine label="Address" value={payment.address} />
             </div>
           </div>
         </div>

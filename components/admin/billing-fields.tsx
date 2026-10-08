@@ -13,7 +13,12 @@ export const compactFieldClass =
 const NIGHT_OPTIONS = Array.from({ length: 15 }, (_, index) => index + 1);
 
 export const SUGGESTED_INCLUDES = [
+  "One way 3rd AC train",
+  "One way Non AC train",
   "Two way Non AC train",
+  "Two way 3rd AC train",
+  "One way flight",
+  "Two way flight",
   "Pickup and Drop",
   "Breakfast and Dinner",
   "All sightseeing",
@@ -21,10 +26,12 @@ export const SUGGESTED_INCLUDES = [
   "Private vehicle",
 ];
 
+// The random prefix keeps keys unique when hot reload resets `keySeed` but existing rows keep their keys.
+const keyPrefix = Math.random().toString(36).slice(2, 8);
 let keySeed = 0;
 export function newRowKey() {
   keySeed += 1;
-  return `row-${keySeed}`;
+  return `row-${keyPrefix}-${keySeed}`;
 }
 
 export type StayDraft = { key: string; place: string; nights: number };

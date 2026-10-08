@@ -194,6 +194,16 @@ export async function ensureSchema() {
     if (code !== "ER_DUP_FIELDNAME") throw error;
   }
 
+  // Existing databases created before `auto_email_pending` existed
+  try {
+    await pool.query(
+      "ALTER TABLE invoices ADD COLUMN auto_email_pending TINYINT(1) NOT NULL DEFAULT 0 AFTER payment_details",
+    );
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (code !== "ER_DUP_FIELDNAME") throw error;
+  }
+
   schemaReady = true;
 }
 

@@ -78,7 +78,7 @@ export default function InvoiceSettingsForm({ prefix, paymentDetails, today }: I
               {paymentDetailFields
                 .filter((field) => field.group === group)
                 .map((field) => (
-                  <label key={field.key} className="block">
+                  <label key={field.key} className={field.wide ? "block sm:col-span-2" : "block"}>
                     <span className="text-sm font-medium text-[#EDEDED]">{field.label}</span>
                     <input
                       name={field.key}

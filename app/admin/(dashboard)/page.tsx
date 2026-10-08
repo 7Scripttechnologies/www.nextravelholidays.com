@@ -8,7 +8,6 @@ import {
   HandCoins,
   Images,
   MessageSquareQuote,
-  Package,
   ReceiptText,
   UserPlus,
   Users,
@@ -24,7 +23,6 @@ import { formatINR, formatInvoiceDate } from "@/lib/invoice";
 import { listInvoices } from "@/lib/invoices-db";
 import { listPackageSummaries } from "@/lib/packages-db";
 import { listReviews } from "@/lib/reviews-db";
-import { listTourPackages } from "@/lib/tour-packages-db";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -38,7 +36,6 @@ function loadDashboard() {
   return Promise.all([
     listInvoices(),
     listCustomers(),
-    listTourPackages(),
     listPackageSummaries(),
     listGalleryItems({ includeInactive: true }),
     listReviews({ includeInactive: true }),
@@ -137,7 +134,7 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const [invoices, customers, tourPackages, packages, gallery, reviews] = data;
+  const [invoices, customers, packages, gallery, reviews] = data;
 
   const monthPrefix = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(now).slice(0, 7);
   const thisMonth = invoices.filter((item) => item.invoiceDate.startsWith(monthPrefix));
@@ -191,13 +188,6 @@ export default async function AdminDashboardPage() {
 
   const contentStats = [
     { label: "Customers", value: customers.length, hint: "Saved clients", icon: Users, href: "/admin/customers" },
-    {
-      label: "Tour packages",
-      value: tourPackages.length,
-      hint: "For invoices",
-      icon: Package,
-      href: "/admin/tour-packages",
-    },
     {
       label: "Website packages",
       value: packages.length,
@@ -338,7 +328,7 @@ export default async function AdminDashboardPage() {
 
       <section className="mt-6">
         <h2 className="mb-3 text-[12px] font-bold tracking-[0.16em] text-[#EDEDED] uppercase">Business & website</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5 xl:gap-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-4">
           {contentStats.map((stat) => (
             <StatCard key={stat.label} {...stat} value={String(stat.value)} />
           ))}

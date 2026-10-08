@@ -284,18 +284,31 @@ function invoiceValues(input: InvoiceInput) {
   ];
 }
 
-export async function insertInvoice(input: InvoiceInput) {
+export async function insertInvoice(input: InvoiceInput, { autoEmail = false }: { autoEmail?: boolean } = {}) {
   await ensureSchema();
   const [result] = await getPool().query<ResultSetHeader>(
     `INSERT INTO invoices (
       invoice_no, invoice_date, customer_id, tour_package_id,
       client_name, client_mobile, client_email, client_city,
       package_name, duration, destinations, travellers, rooms, hotel,
-      stay_plan, includes, charges, total_amount, advance_received, payment_details
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    invoiceValues(input),
+      stay_plan, includes, charges, total_amount, advance_received, payment_details, auto_email_pending
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [...invoiceValues(input), autoEmail ? 1 : 0],
   );
   return result.insertId;
+}
+
+/**
+ * Atomically takes the "email this new invoice" flag set on creation. Only one caller ever gets
+ * `true`, so the automatic email goes out once even if several requests race for it.
+ */
+export async function claimInvoiceAutoEmail(id: number) {
+  await ensureSchema();
+  const [result] = await getPool().query<ResultSetHeader>(
+    "UPDATE invoices SET auto_email_pending = 0, updated_at = updated_at WHERE id = ? AND auto_email_pending = 1",
+    [id],
+  );
+  return result.affectedRows > 0;
 }
 
 export async function updateInvoice(id: number, input: InvoiceInput) {

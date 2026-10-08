@@ -30,17 +30,23 @@ export async function getInvoiceSettings(): Promise<InvoiceSettings> {
   const storedPrefix = (map.get(PREFIX_KEY) ?? "").trim();
   const prefix = isValidInvoicePrefix(storedPrefix) ? storedPrefix : DEFAULT_INVOICE_PREFIX;
 
-  let paymentDetails: PaymentDetails;
+  let stored: unknown;
   if (map.has(PAYMENT_KEY)) {
-    paymentDetails = sanitizePaymentDetails(parseJsonColumn(map.get(PAYMENT_KEY)));
+    stored = parseJsonColumn(map.get(PAYMENT_KEY));
   } else {
     // Until Settings is saved once, carry over details typed on earlier invoices.
     const [latest] = await pool.query<RowDataPacket[]>(
       "SELECT payment_details FROM invoices ORDER BY id DESC LIMIT 1",
     );
-    paymentDetails = latest[0]
-      ? sanitizePaymentDetails(parseJsonColumn(latest[0].payment_details))
-      : defaultPaymentDetails();
+    stored = latest[0] ? parseJsonColumn(latest[0].payment_details) : null;
+  }
+
+  const defaults = defaultPaymentDetails();
+  let paymentDetails: PaymentDetails = defaults;
+  if (stored && typeof stored === "object") {
+    paymentDetails = sanitizePaymentDetails(stored);
+    // Details saved before the address field existed get the default; a saved empty value is kept.
+    if (!("address" in stored)) paymentDetails.address = defaults.address;
   }
 
   return { prefix, paymentDetails };

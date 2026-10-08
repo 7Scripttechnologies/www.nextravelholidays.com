@@ -178,7 +178,7 @@ export default async function AdminInvoicesPage({
               <p className="mx-auto mt-2 max-w-md text-sm text-muted">
                 {query
                   ? "Try a different invoice number, client name or package."
-                  : "Create your first invoice. Tip: build a tour package and add customers first to save time."}
+                  : "Create your first invoice. Tip: add customers first to save time."}
               </p>
               {!query ? (
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -186,8 +186,8 @@ export default async function AdminInvoicesPage({
                     <Plus className="size-4" />
                     New invoice
                   </Button>
-                  <Button href="/admin/tour-packages/new" variant="secondary">
-                    Build package
+                  <Button href="/admin/customers/new" variant="secondary">
+                    Add customer
                   </Button>
                 </div>
               ) : null}

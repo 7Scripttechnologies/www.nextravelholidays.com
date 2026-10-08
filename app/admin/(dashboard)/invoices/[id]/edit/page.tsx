@@ -6,7 +6,6 @@ import InvoiceForm from "@/components/admin/InvoiceForm";
 import { listCustomers } from "@/lib/customers-db";
 import { getInvoiceSettings } from "@/lib/invoice-settings-db";
 import { getInvoiceById, listInvoicePayments } from "@/lib/invoices-db";
-import { listTourPackages } from "@/lib/tour-packages-db";
 
 export const metadata: Metadata = {
   title: "Edit invoice — Admin",
@@ -22,10 +21,9 @@ export default async function EditInvoicePage({
   const invoiceId = Number(id);
   if (!Number.isInteger(invoiceId) || invoiceId < 1) notFound();
 
-  const [invoice, customers, packages, settings, payments] = await Promise.all([
+  const [invoice, customers, settings, payments] = await Promise.all([
     getInvoiceById(invoiceId),
     listCustomers(),
-    listTourPackages(),
     getInvoiceSettings(),
     listInvoicePayments(invoiceId),
   ]);
@@ -46,13 +44,6 @@ export default async function EditInvoicePage({
           mobile,
           email,
           city,
-        }))}
-        packages={packages.map(({ id: packageId, name, duration, stayPlan, includes }) => ({
-          id: packageId,
-          name,
-          duration,
-          stayPlan,
-          includes,
         }))}
         action={updateInvoiceAction.bind(null, invoice.id)}
         cancelHref={`/admin/invoices/${invoice.id}`}

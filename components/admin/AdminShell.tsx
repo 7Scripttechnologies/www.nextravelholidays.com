@@ -15,7 +15,6 @@ import {
   LogOut,
   Menu,
   MessageSquareQuote,
-  Package,
   ReceiptText,
   Settings,
   Sparkles,
@@ -69,7 +68,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: "Billing",
     items: [
       { href: "/admin/invoices", label: "Invoices", icon: ReceiptText, id: "invoices" as const },
-      { href: "/admin/tour-packages", label: "Tour Packages", icon: Package, id: "tour-packages" as const },
       { href: "/admin/customers", label: "Customers", icon: Users, id: "customers" as const },
     ],
   },

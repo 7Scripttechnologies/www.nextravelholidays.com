@@ -162,6 +162,7 @@ export const schemaStatements = [
     total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     advance_received DECIMAL(12,2) NOT NULL DEFAULT 0,
     payment_details JSON NOT NULL,
+    auto_email_pending TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),

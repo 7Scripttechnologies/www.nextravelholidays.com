@@ -25,6 +25,7 @@ import { isValidEmail, sendMail } from "@/lib/mailer";
 import { deleteInvoicePdf, invoicePdfToken, saveInvoicePdf } from "@/lib/invoice-pdf-store";
 import { getInvoiceSettings, saveInvoiceSettings } from "@/lib/invoice-settings-db";
 import {
+  claimInvoiceAutoEmail,
   deleteInvoice,
   deleteInvoicePayment,
   getInvoiceById,
@@ -171,6 +172,7 @@ export async function createInvoiceAction(
   if (!parsed.ok) return { error: parsed.error };
 
   const data = { ...parsed.data };
+  const autoEmail = isValidEmail(data.clientEmail);
   let invoiceId = 0;
 
   try {
@@ -188,7 +190,10 @@ export async function createInvoiceAction(
     for (let attempt = 0; ; attempt += 1) {
       const invoiceNo = await getNextInvoiceNo(settings.prefix, data.invoiceDate);
       try {
-        invoiceId = await insertInvoice({ ...data, invoiceNo, paymentDetails: settings.paymentDetails });
+        invoiceId = await insertInvoice(
+          { ...data, invoiceNo, paymentDetails: settings.paymentDetails },
+          { autoEmail },
+        );
         break;
       } catch (error) {
         if (dbErrorCode(error) !== "ER_DUP_ENTRY" || attempt >= 4) throw error;
@@ -200,7 +205,7 @@ export async function createInvoiceAction(
 
   revalidateBilling();
   // The invoice page builds the PDF in the browser and emails it to the client.
-  redirect(`/admin/invoices/${invoiceId}${isValidEmail(data.clientEmail) ? "?email=1" : ""}`);
+  redirect(`/admin/invoices/${invoiceId}${autoEmail ? "?email=1" : ""}`);
 }
 
 export async function updateInvoiceAction(
@@ -269,7 +274,11 @@ export async function shareInvoicePdfAction(id: number, formData: FormData): Pro
   return { path: `/invoice/${invoicePdfToken(id)}` };
 }
 
-export type EmailInvoiceResult = { ok: true; to: string } | { ok: false; error: string };
+export type EmailInvoiceResult =
+  | { ok: true; to: string }
+  | { ok: false; error: string }
+  /** The automatic email for a new invoice was already sent by another request. */
+  | { ok: "skipped" };
 
 /** Public base URL for links in emails, or null when running on this computer (customers can't open those). */
 async function publicOrigin() {
@@ -288,6 +297,22 @@ async function publicOrigin() {
 
 /** Saves the browser-built PDF (refreshing the shared link) and emails it to the client with the trip details. */
 export async function emailInvoiceAction(id: number, formData: FormData): Promise<EmailInvoiceResult> {
+  return sendInvoiceEmail(id, formData, { once: false });
+}
+
+/**
+ * The automatic email sent right after an invoice is created. The server only sends it if it can
+ * claim the invoice's one-time flag, so the client gets it once however many times this is called.
+ */
+export async function emailNewInvoiceAction(id: number, formData: FormData): Promise<EmailInvoiceResult> {
+  return sendInvoiceEmail(id, formData, { once: true });
+}
+
+async function sendInvoiceEmail(
+  id: number,
+  formData: FormData,
+  { once }: { once: boolean },
+): Promise<EmailInvoiceResult> {
   await requireAdmin();
   validId(id);
   const file = formData.get("pdf");
@@ -302,6 +327,11 @@ export async function emailInvoiceAction(id: number, formData: FormData): Promis
     if (!isValidEmail(to)) {
       console.warn(`[invoice email] invoice ${id}: client email "${to}" is not valid`);
       return { ok: false, error: "This client has no valid email address. Add one with Edit, then send again." };
+    }
+
+    if (once && !(await claimInvoiceAutoEmail(id))) {
+      console.info(`[invoice email] invoice ${id}: automatic email already sent, skipping duplicate`);
+      return { ok: "skipped" };
     }
 
     await saveInvoicePdf(id, file);

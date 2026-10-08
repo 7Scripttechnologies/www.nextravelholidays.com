@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AlertCircle, CheckCircle2, Download, Loader2, Mail, X } from "lucide-react";
 import {
   emailInvoiceAction,
+  emailNewInvoiceAction,
   getInvoicePdfDataAction,
   shareInvoicePdfAction,
 } from "@/app/admin/billing-actions";
@@ -123,6 +124,12 @@ type PreparedPdf = {
 
 /** A prepared PDF is reused briefly so hovering then clicking doesn't render it twice. */
 const PREPARED_TTL_MS = 60_000;
+
+/**
+ * AdminShell renders its header actions twice (desktop and mobile copies are both mounted), so
+ * the auto-email claim has to be shared across component instances rather than kept in a ref.
+ */
+const autoEmailedInvoices = new Set<number>();
 
 type Notice = { tone: "success" | "error" | "info"; text: string };
 
@@ -307,7 +314,7 @@ export default function InvoicePdfActions({
     }
   }
 
-  async function sendEmail({ confirmFirst }: { confirmFirst: boolean }) {
+  async function sendEmail({ confirmFirst, auto = false }: { confirmFirst: boolean; auto?: boolean }) {
     if (busy) return;
     setBusy("email");
     try {
@@ -326,12 +333,14 @@ export default function InvoicePdfActions({
       setNotice({ tone: "info", text: `Emailing the invoice to ${to}…` });
       const formData = new FormData();
       formData.set("pdf", new File([pdf.blob], pdf.fileName, { type: "application/pdf" }));
-      const result = await emailInvoiceAction(invoiceId, formData);
-      setNotice(
-        result.ok
-          ? { tone: "success", text: `Invoice emailed to ${result.to}.` }
-          : { tone: "error", text: result.error },
-      );
+      const result = await (auto ? emailNewInvoiceAction : emailInvoiceAction)(invoiceId, formData);
+      if (result.ok === "skipped") {
+        setNotice(null);
+      } else if (result.ok) {
+        setNotice({ tone: "success", text: `Invoice emailed to ${result.to}.` });
+      } else {
+        setNotice({ tone: "error", text: result.error });
+      }
     } catch (error) {
       setNotice({
         tone: "error",
@@ -342,16 +351,14 @@ export default function InvoicePdfActions({
     }
   }
 
-  const autoEmailStartedRef = useRef(false);
   useEffect(() => {
-    if (!autoEmail || autoEmailStartedRef.current) return;
-    // Guarded by a ref so React's double-run in development can't send the email twice.
-    autoEmailStartedRef.current = true;
+    if (!autoEmail || autoEmailedInvoices.has(invoiceId)) return;
+    autoEmailedInvoices.add(invoiceId);
     // Drop `?email=1` so refreshing the page doesn't email the client again.
     window.history.replaceState(window.history.state, "", window.location.pathname);
-    void Promise.resolve().then(() => sendEmail({ confirmFirst: false }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
-  }, [autoEmail]);
+    void Promise.resolve().then(() => sendEmail({ confirmFirst: false, auto: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per invoice
+  }, [autoEmail, invoiceId]);
 
   const large = size === "lg";
   const baseClass = large
