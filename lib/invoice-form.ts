@@ -47,6 +47,13 @@ export function parseInvoiceForm(
   const saveCustomer = payload.saveCustomer === true;
 
   if (!isIsoDate(invoiceDate)) return { ok: false, error: "Choose a valid invoice date." };
+  const travelStart = text(payload, "travelStart", 10);
+  const travelEnd = text(payload, "travelEnd", 10);
+  if (travelStart && !isIsoDate(travelStart)) return { ok: false, error: "Choose a valid travel start date." };
+  if (travelEnd && !isIsoDate(travelEnd)) return { ok: false, error: "Choose a valid travel end date." };
+  if (travelStart && travelEnd && travelEnd < travelStart) {
+    return { ok: false, error: "Travel end date cannot be before the start date." };
+  }
   if (!clientName) return { ok: false, error: "Client name is required." };
   if (!packageName) return { ok: false, error: "Package name is required." };
   if (charges.length === 0) {
@@ -78,6 +85,8 @@ export function parseInvoiceForm(
     saveCustomer,
     data: {
       invoiceDate,
+      travelStart,
+      travelEnd,
       customerId: optionalId(payload.customerId),
       tourPackageId: optionalId(payload.tourPackageId),
       clientName,
@@ -90,6 +99,7 @@ export function parseInvoiceForm(
       travellers: text(payload, "travellers"),
       rooms: text(payload, "rooms", 128),
       hotel: text(payload, "hotel", 128),
+      transport: text(payload, "transport", 64),
       stayPlan: sanitizeStayPlan(payload.stayPlan),
       includes: sanitizeIncludes(payload.includes),
       charges,

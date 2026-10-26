@@ -41,6 +41,8 @@ export default async function NewInvoicePage({
   const initial: InvoiceFormInitial = {
     invoiceNo: data.invoiceNo,
     invoiceDate: data.today,
+    travelStart: "",
+    travelEnd: "",
     customerId: customer?.id ?? null,
     tourPackageId: null,
     clientName: customer?.name ?? "",
@@ -53,6 +55,7 @@ export default async function NewInvoicePage({
     travellers: "",
     rooms: "",
     hotel: "",
+    transport: "",
     stayPlan: [],
     includes: [],
     charges: [],

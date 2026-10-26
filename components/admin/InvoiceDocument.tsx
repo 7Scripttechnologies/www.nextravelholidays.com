@@ -3,11 +3,13 @@ import {
   chargesTotal,
   formatINR,
   formatInvoiceDate,
+  formatTravelDates,
   lineAmount,
   paymentStatus,
   toAmount,
   type InvoiceData,
 } from "@/lib/invoice";
+import { cn } from "@/lib/utils";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -18,7 +20,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DetailTable({ rows }: { rows: Array<[string, string, string, string]> }) {
+/** Two-item rows span the full width; four-item rows show two label/value pairs. */
+function DetailTable({ rows }: { rows: Array<[string, string] | [string, string, string, string]> }) {
   return (
     <table className="w-full table-fixed border-collapse text-[12.5px]">
       <colgroup>
@@ -33,11 +36,22 @@ function DetailTable({ rows }: { rows: Array<[string, string, string, string]> }
             <th className="border border-[#D9D9D9] bg-[#111111] px-2.5 py-[3px] text-left leading-[16px] font-bold text-white">
               {labelA}
             </th>
-            <td className="border border-[#D9D9D9] px-2.5 py-[3px] leading-[16px] break-words text-[#222222]">{valueA}</td>
-            <th className="border border-[#D9D9D9] bg-[#111111] px-2.5 py-[3px] text-left leading-[16px] font-bold text-white">
-              {labelB}
-            </th>
-            <td className="border border-[#D9D9D9] px-2.5 py-[3px] leading-[16px] break-words text-[#222222]">{valueB}</td>
+            <td
+              colSpan={labelB === undefined ? 3 : undefined}
+              className="border border-[#D9D9D9] px-2.5 py-[3px] leading-[16px] break-words text-[#222222]"
+            >
+              {valueA}
+            </td>
+            {labelB !== undefined ? (
+              <>
+                <th className="border border-[#D9D9D9] bg-[#111111] px-2.5 py-[3px] text-left leading-[16px] font-bold text-white">
+                  {labelB}
+                </th>
+                <td className="border border-[#D9D9D9] px-2.5 py-[3px] leading-[16px] break-words text-[#222222]">
+                  {valueB}
+                </td>
+              </>
+            ) : null}
           </tr>
         ))}
       </tbody>
@@ -175,6 +189,7 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
   const status = paymentStatus(total, received);
   const payment = data.paymentDetails;
   const history = paymentHistory(data, paymentsReceived);
+  const travelDates = formatTravelDates(data.travelStart, data.travelEnd);
 
   return (
     <article className="flex min-h-[295mm] w-[210mm] flex-col bg-white px-[52px] pt-[32px] pb-[28px] font-sans text-[#222222] antialiased [color-scheme:light]">
@@ -196,11 +211,17 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
         </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-4 border-b border-[#E3E3E3] px-[10px] pt-[9px] pb-[8px]">
+      <div
+        className={cn(
+          "grid gap-4 border-b border-[#E3E3E3] px-[10px] pt-[9px] pb-[8px]",
+          travelDates ? "grid-cols-[1fr_1.15fr_0.8fr_1.25fr]" : "grid-cols-3",
+        )}
+      >
         {[
           ["Invoice date", formatInvoiceDate(data.invoiceDate)],
           ["Package", data.packageName],
           ["Duration", data.duration],
+          ...(travelDates ? [["Travel dates", travelDates]] : []),
         ].map(([label, value]) => (
           <div key={label} className="min-w-0">
             <p className="text-[10px] leading-[14px] font-extrabold tracking-[0.04em] text-[#C62828] uppercase">{label}</p>
@@ -225,6 +246,7 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
           rows={[
             ["Destinations", data.destinations, "Travellers", data.travellers],
             ["Rooms", data.rooms, "Hotel", data.hotel],
+            ...(data.transport ? [["Transport", data.transport] as [string, string]] : []),
           ]}
         />
       </section>

@@ -51,6 +51,8 @@ interface InvoiceRow extends RowDataPacket {
   id: number;
   invoice_no: string;
   invoice_date: string;
+  travel_start: string | null;
+  travel_end: string | null;
   customer_id: number | null;
   tour_package_id: number | null;
   client_name: string;
@@ -63,6 +65,7 @@ interface InvoiceRow extends RowDataPacket {
   travellers: string;
   rooms: string;
   hotel: string;
+  transport: string | null;
   stay_plan: unknown;
   includes: unknown;
   charges: unknown;
@@ -79,6 +82,8 @@ function toRecord(row: InvoiceRow): InvoiceRecord {
     id: row.id,
     invoiceNo: row.invoice_no,
     invoiceDate: String(row.invoice_date ?? "").slice(0, 10),
+    travelStart: String(row.travel_start ?? "").slice(0, 10),
+    travelEnd: String(row.travel_end ?? "").slice(0, 10),
     customerId: row.customer_id ?? null,
     tourPackageId: row.tour_package_id ?? null,
     clientName: row.client_name,
@@ -91,6 +96,7 @@ function toRecord(row: InvoiceRow): InvoiceRecord {
     travellers: row.travellers ?? "",
     rooms: row.rooms ?? "",
     hotel: row.hotel ?? "",
+    transport: row.transport ?? "",
     stayPlan: sanitizeStayPlan(parseJsonColumn(row.stay_plan)),
     includes: sanitizeIncludes(parseJsonColumn(row.includes)),
     charges: sanitizeCharges(parseJsonColumn(row.charges)),
@@ -263,6 +269,8 @@ function invoiceValues(input: InvoiceInput) {
   return [
     input.invoiceNo,
     input.invoiceDate,
+    input.travelStart || null,
+    input.travelEnd || null,
     input.customerId,
     input.tourPackageId,
     input.clientName,
@@ -275,6 +283,7 @@ function invoiceValues(input: InvoiceInput) {
     input.travellers,
     input.rooms,
     input.hotel,
+    input.transport,
     JSON.stringify(input.stayPlan),
     JSON.stringify(input.includes),
     JSON.stringify(input.charges),
@@ -288,11 +297,11 @@ export async function insertInvoice(input: InvoiceInput, { autoEmail = false }: 
   await ensureSchema();
   const [result] = await getPool().query<ResultSetHeader>(
     `INSERT INTO invoices (
-      invoice_no, invoice_date, customer_id, tour_package_id,
+      invoice_no, invoice_date, travel_start, travel_end, customer_id, tour_package_id,
       client_name, client_mobile, client_email, client_city,
-      package_name, duration, destinations, travellers, rooms, hotel,
+      package_name, duration, destinations, travellers, rooms, hotel, transport,
       stay_plan, includes, charges, total_amount, advance_received, payment_details, auto_email_pending
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [...invoiceValues(input), autoEmail ? 1 : 0],
   );
   return result.insertId;
@@ -315,9 +324,9 @@ export async function updateInvoice(id: number, input: InvoiceInput) {
   await ensureSchema();
   const [result] = await getPool().query<ResultSetHeader>(
     `UPDATE invoices SET
-      invoice_no = ?, invoice_date = ?, customer_id = ?, tour_package_id = ?,
+      invoice_no = ?, invoice_date = ?, travel_start = ?, travel_end = ?, customer_id = ?, tour_package_id = ?,
       client_name = ?, client_mobile = ?, client_email = ?, client_city = ?,
-      package_name = ?, duration = ?, destinations = ?, travellers = ?, rooms = ?, hotel = ?,
+      package_name = ?, duration = ?, destinations = ?, travellers = ?, rooms = ?, hotel = ?, transport = ?,
       stay_plan = ?, includes = ?, charges = ?, total_amount = ?, advance_received = ?, payment_details = ?
      WHERE id = ?`,
     [...invoiceValues(input), id],

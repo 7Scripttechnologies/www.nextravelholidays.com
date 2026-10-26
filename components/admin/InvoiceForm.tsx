@@ -23,6 +23,7 @@ import SearchSelect, { type SearchSelectOption } from "@/components/admin/Search
 import Button from "@/components/Button";
 import type { CustomerRecord } from "@/lib/customers-db";
 import {
+  addDaysIso,
   chargesTotal,
   destinationsFromStayPlan,
   durationFromStayPlan,
@@ -31,8 +32,11 @@ import {
   isIsoDate,
   lineAmount,
   toAmount,
+  totalNights,
+  TRANSPORT_OPTIONS,
   type ChargeLine,
   type InvoiceData,
+  type StayStop,
 } from "@/lib/invoice";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +80,12 @@ function fromChargeDrafts(rows: ChargeDraft[]): ChargeLine[] {
       rate: Math.max(0, toAmount(row.rate)),
     }))
     .filter((line) => line.description);
+}
+
+/** Trip end = start + total nights in the stay plan (checking out on the morning after the last night). */
+function autoTravelEnd(start: string, stayPlan: StayStop[]) {
+  const nights = totalNights(stayPlan);
+  return start && nights > 0 ? addDaysIso(start, nights) : "";
 }
 
 function ErrorMessage({ message }: { message?: string }) {
@@ -148,15 +158,25 @@ export default function InvoiceForm({
       : null,
   );
 
+  const [travelStart, setTravelStart] = useState(initial.travelStart);
+  const [travelEndOverride, setTravelEndOverride] = useState<string | null>(() =>
+    initial.travelEnd && initial.travelEnd !== autoTravelEnd(initial.travelStart, initial.stayPlan)
+      ? initial.travelEnd
+      : null,
+  );
+
   const [travellers, setTravellers] = useState(initial.travellers);
   const [rooms, setRooms] = useState(initial.rooms);
   const [hotel, setHotel] = useState(initial.hotel);
+  const [transport, setTransport] = useState(initial.transport);
 
   const [chargeRows, setChargeRows] = useState(() => toChargeDrafts(initial.charges));
   const [advance, setAdvance] = useState(initial.advanceReceived ? String(initial.advanceReceived) : "");
   const stayPlan = fromStayDrafts(stayRows);
   const autoDuration = durationFromStayPlan(stayPlan);
   const autoDestinations = destinationsFromStayPlan(stayPlan);
+  const travelEnd = travelEndOverride ?? autoTravelEnd(travelStart, stayPlan);
+  const travelEndBeforeStart = Boolean(travelStart && travelEnd && travelEnd < travelStart);
 
   // New invoices get their number on save; the preview shows the next free number for that month.
   const sameMonthAsSuggestion = invoiceDate.slice(0, 7) === initial.invoiceDate.slice(0, 7);
@@ -168,6 +188,8 @@ export default function InvoiceForm({
   const data: InvoiceData = {
     invoiceNo,
     invoiceDate,
+    travelStart,
+    travelEnd,
     clientName: client.name.trim(),
     clientMobile: client.mobile.trim(),
     clientEmail: client.email.trim(),
@@ -178,6 +200,7 @@ export default function InvoiceForm({
     travellers: travellers.trim(),
     rooms: rooms.trim(),
     hotel: hotel.trim(),
+    transport,
     stayPlan,
     includes: fromIncludeDrafts(includeRows),
     charges: fromChargeDrafts(chargeRows),
@@ -391,6 +414,35 @@ export default function InvoiceForm({
 
         <FormSection title="Trip details">
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Travel start">
+              <input
+                type="date"
+                value={travelStart}
+                onChange={(event) => setTravelStart(event.target.value)}
+                className={cn(fieldClass, "[color-scheme:dark]")}
+              />
+            </Field>
+            <Field
+              label={
+                <>
+                  Travel end
+                  {travelStart ? (
+                    <AutoBadge active={travelEndOverride == null} onReset={() => setTravelEndOverride(null)} />
+                  ) : null}
+                </>
+              }
+            >
+              <input
+                type="date"
+                value={travelEnd}
+                min={travelStart || undefined}
+                onChange={(event) => setTravelEndOverride(event.target.value)}
+                className={cn(fieldClass, "[color-scheme:dark]", travelEndBeforeStart && "border-[#E20E17]")}
+              />
+            </Field>
+            {travelEndBeforeStart ? (
+              <p className="-mt-2 text-xs text-[#FF5A61] sm:col-span-2">Travel end date is before the start date.</p>
+            ) : null}
             <Field
               className="sm:col-span-2"
               label={
@@ -429,7 +481,7 @@ export default function InvoiceForm({
                 className={fieldClass}
               />
             </Field>
-            <Field label="Hotel" className="sm:col-span-2">
+            <Field label="Hotel">
               <input
                 value={hotel}
                 onChange={(event) => setHotel(event.target.value)}
@@ -437,6 +489,19 @@ export default function InvoiceForm({
                 placeholder="3 Star Stay"
                 className={fieldClass}
               />
+            </Field>
+            <Field label="Transport">
+              <select value={transport} onChange={(event) => setTransport(event.target.value)} className={fieldClass}>
+                <option value="">— Not included —</option>
+                {TRANSPORT_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+                {transport && !TRANSPORT_OPTIONS.includes(transport) ? (
+                  <option value={transport}>{transport}</option>
+                ) : null}
+              </select>
             </Field>
           </div>
         </FormSection>
@@ -594,7 +659,7 @@ export default function InvoiceForm({
         <ErrorMessage message={state?.error} />
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={pending || advanceTooHigh}>
+          <Button type="submit" disabled={pending || advanceTooHigh || travelEndBeforeStart}>
             {pending ? "Saving..." : mode === "create" ? "Save invoice" : "Save changes"}
           </Button>
           <Button href={cancelHref} variant="secondary">

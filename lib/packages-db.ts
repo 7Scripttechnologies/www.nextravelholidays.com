@@ -204,6 +204,20 @@ export async function ensureSchema() {
     if (code !== "ER_DUP_FIELDNAME") throw error;
   }
 
+  // Existing databases created before travel dates / transport existed
+  for (const statement of [
+    "ALTER TABLE invoices ADD COLUMN travel_start DATE NULL AFTER invoice_date",
+    "ALTER TABLE invoices ADD COLUMN travel_end DATE NULL AFTER travel_start",
+    "ALTER TABLE invoices ADD COLUMN transport VARCHAR(64) NOT NULL DEFAULT '' AFTER hotel",
+  ]) {
+    try {
+      await pool.query(statement);
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+      if (code !== "ER_DUP_FIELDNAME") throw error;
+    }
+  }
+
   schemaReady = true;
 }
 

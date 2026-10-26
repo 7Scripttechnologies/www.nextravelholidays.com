@@ -20,6 +20,9 @@ export type PaymentDetails = {
 export type InvoiceData = {
   invoiceNo: string;
   invoiceDate: string;
+  /** `YYYY-MM-DD`, or "" when not set. */
+  travelStart: string;
+  travelEnd: string;
   clientName: string;
   clientMobile: string;
   clientEmail: string;
@@ -30,6 +33,8 @@ export type InvoiceData = {
   travellers: string;
   rooms: string;
   hotel: string;
+  /** "Train", "Flight", "Train + Flight", or "" when not set. */
+  transport: string;
   stayPlan: StayStop[];
   includes: string[];
   charges: ChargeLine[];
@@ -69,6 +74,8 @@ export function paymentStatus(total: number, received: number): PaymentStatus {
 }
 
 export const DEFAULT_INVOICE_PREFIX = "#NH";
+
+export const TRANSPORT_OPTIONS = ["Train", "Flight", "Train + Flight"];
 
 export const DEFAULT_OFFICE_ADDRESS =
   "Office No. 227, Madhuram, star platinum complex, Vanthali Rd, Madhuram, Moti Palace Twp, Junagadh, Gujarat 362015";
@@ -137,6 +144,34 @@ export function formatInvoiceDate(value: string) {
   if (!isIsoDate(iso)) return value;
   const [year, month, day] = iso.split("-");
   return `${day} ${MONTHS[Number(month) - 1]} ${year}`;
+}
+
+const SHORT_MONTHS = MONTHS.map((month) => month.slice(0, 3));
+
+/** `2026-10-17` + 8 → `2026-10-25`, computed in UTC so DST never shifts the day. */
+export function addDaysIso(value: string, days: number) {
+  if (!isIsoDate(value)) return "";
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+/** `17 Oct – 25 Oct 2026`, `28 Dec 2026 – 3 Jan 2027`, or a single date when only one is set. */
+export function formatTravelDates(start: string, end: string) {
+  const parts = (value: string) => {
+    if (!isIsoDate(value)) return null;
+    const [year, month, day] = value.split("-");
+    return { year, label: `${Number(day)} ${SHORT_MONTHS[Number(month) - 1]}` };
+  };
+  const from = parts(start);
+  const to = parts(end);
+  if (from && to) {
+    return from.year === to.year
+      ? `${from.label} – ${to.label} ${to.year}`
+      : `${from.label} ${from.year} – ${to.label} ${to.year}`;
+  }
+  const single = from ?? to;
+  return single ? `${single.label} ${single.year}` : "";
 }
 
 export function todayIso() {

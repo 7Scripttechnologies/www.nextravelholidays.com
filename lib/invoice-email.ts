@@ -1,4 +1,11 @@
-import { chargesTotal, formatINR, formatInvoiceDate, toAmount, type InvoiceData } from "@/lib/invoice";
+import {
+  chargesTotal,
+  formatINR,
+  formatInvoiceDate,
+  formatTravelDates,
+  toAmount,
+  type InvoiceData,
+} from "@/lib/invoice";
 
 function escapeHtml(value: string) {
   return value
@@ -21,10 +28,12 @@ function tripRows(data: InvoiceData): Array<[string, string]> {
     ["Invoice date", formatInvoiceDate(data.invoiceDate)],
     ["Package", data.packageName],
     ["Duration", data.duration],
+    ["Travel dates", formatTravelDates(data.travelStart, data.travelEnd)],
     ["Destinations", data.destinations],
     ["Travellers", data.travellers],
     ["Rooms", data.rooms],
     ["Hotel", data.hotel],
+    ["Transport", data.transport],
   ];
   return rows.filter(([, value]) => value.trim());
 }
